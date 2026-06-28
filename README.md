@@ -37,9 +37,12 @@
 
 
 ---
-## 📦 Installation（開発者向け）
+## 📦 Installation
 1. このリポジトリを clone または download  
 2. Chrome の `拡張機能` → `デベロッパーモード` を ON  
 3. 「パッケージ化されていない拡張機能を読み込む」からフォルダを選択  
 4. `manifest.json` が読み込まれ、拡張が有効化されます
 5. Chrome の右上にある拡張アイコンをクリックして「Employee Survival System」→「サイドパネルを開く」で表示されます。
+---
+## 📆 今後の開発方針
+fakeActionsやfakeWorkSitesを外部の設定ファイルや拡張機能のストレージから自由に変更できる機能の追加。
