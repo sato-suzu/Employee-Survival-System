@@ -42,15 +42,3 @@
 2. Chrome の `拡張機能` → `デベロッパーモード` を ON  
 3. 「パッケージ化されていない拡張機能を読み込む」からフォルダを選択  
 4. `manifest.json` が読み込まれ、拡張が有効化されます
-
----
-
-## 🗂 Folder Structure
-employee-survival-system/
- ├── manifest.json
- ├── background.js
- ├── sidepanel.html
- ├── sidepanel.js
- ├── icons/
- └── assets/
-
