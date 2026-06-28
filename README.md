@@ -44,5 +44,5 @@
 4. `manifest.json` が読み込まれ、拡張が有効化されます
 5. Chrome の右上にある拡張アイコンをクリックして「Employee Survival System」→「サイドパネルを開く」で表示されます。
 ---
-## 📆 今後の開発方針
+## 📆 今後の開発予定
 fakeActionsやfakeWorkSitesを外部の設定ファイルや拡張機能のストレージから自由に変更できる機能の追加。
