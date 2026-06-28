@@ -34,6 +34,7 @@
 
 ---
 ## 📸 Screenshots
+<img width="1366" height="768" alt="github用" src="https://github.com/user-attachments/assets/8652ae14-196e-4326-bd31-cca5925c952f" />
 
 
 ---
