@@ -46,5 +46,5 @@
 5. Chrome の右上にある拡張アイコンをクリックして「Employee Survival System」→「サイドパネルを開く」で表示されます。
 ---
 ## 📆 今後の開発予定
-fakeActionsやfakeWorkSitesを外部の設定ファイルや拡張機能のストレージから自由に変更できる機能の追加。
-リファクタリングやる
+- fakeActionsやfakeWorkSitesを外部の設定ファイルや拡張機能のストレージから自由に変更できる機能の追加。
+- リファクタリングやる。
