@@ -127,14 +127,14 @@ async function loop() {
     const now = new Date();
     const currentTime = { hours: now.getHours(), minutes: now.getMinutes(), seconds: now.getSeconds() };
     
-    // 1. ランダムウォークによる上司の距離計算
+    // ランダムウォークによる上司の距離計算
     const step = (Math.random() * 0.8) - 0.4; 
     state.bossDistance = Math.min(5.0, Math.max(0.1, state.bossDistance + step));
     
     const bossDistStr = state.bossDistance.toFixed(1);
     setTargetText('distance', bossDistStr + 'm');
 
-    // 2. 上司の接近判定（緊急偽装モード）
+    // 上司の接近判定（緊急偽装モード）
     if (state.bossDistance < 1.0) {
       if (!state.isBossAlerted) {
         state.isBossAlerted = true;
@@ -159,7 +159,7 @@ async function loop() {
       playBeep();
     }
 
-    // 3. 定時判定
+    // 定時判定
     if (checkTimeReached(currentTime, state.targetTime) && !state.isHomeProtocolExecuted) {
       state.isHomeProtocolExecuted = true;
       appendLog("[SYSTEM] EVADING_ALL_OVERTIME 【定時ダッシュ！】");
@@ -170,7 +170,7 @@ async function loop() {
       break;
     }
 
-    // 4. メンタル消費（※上司が近くにいても等しく削られる絶望感を再現）
+    // メンタル消費（※上司が近くにいても等しく削られる絶望感を再現）
     consumeMental(1);
     
     // メンタル崩壊や外部からのシャットダウンによるループ離脱判定
