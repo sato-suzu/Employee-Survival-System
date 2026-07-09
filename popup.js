@@ -76,7 +76,7 @@ const ACHIEVEMENTS = {
   SOCIAL_DEATH: { title: "【尊厳のトワイライト】", desc: "大波タイムアタックに失敗し、社会的に死亡した。" },
   CLOSE_CALL: { title: "【冷や汗の10センチ】", desc: "上司が至近距離（0.2m以下）まで肉薄した。" },
   ALASKA: { title: "【アラスカの旅人】", desc: "エアコンが寒すぎてオフィスで凍えかけた。" },
-  SLACK_BOMB: { title: "【スタンプ職人】", desc: "Slackスタンプ爆撃に巻き込まれ、通知バッジの精神攻撃を受けた。" },
+  SLACK_BOMB: { title: "【スタンプ職人】", desc: "Slackスタンプ爆撃に巻き込まれ通知バッジの精神攻撃を受けた。" },
   VPN_APOCALYPSE: { title: "【サボりの大義名分】", desc: "VPNが死亡し、合法的に業務が完全停止した。" }
 };
 
@@ -128,7 +128,7 @@ const randomEvents = [
   type: 'error'
 },
 {
-  text: "🎧 ノイズキャンセル発動: 隣席の雑談攻撃に対抗するため、ヘッドホン装備。世界との接続を遮断しました。",
+  text: "🎧 ノイズキャンセル発動: 隣席の雑談攻撃に対抗するためヘッドホン装備。世界との接続を遮断しました。",
   effect: (s) => { 
     s.mentalGauge = Math.min(CONFIG.MENTAL.MAX, s.mentalGauge + 12); 
   },
@@ -178,7 +178,7 @@ const randomEvents = [
   type: 'warn'
 },
 {
-  text: "🧘 無我の境地: 仕事をしているフリを極め、何も感じなくなりました。",
+  text: "🧘 無我の境地: 仕事をしているフリを極めて何も感じなくなりました。",
   effect: (s) => { 
     s.mentalGauge = Math.min(CONFIG.MENTAL.MAX, s.mentalGauge + 5); 
   },
@@ -247,7 +247,7 @@ const randomEvents = [
     type: 'warn'
   },
   {
-    text: "💬 同僚の離脱: 隣の席のプロが生々しいタメ息と共に「お先に失礼します」と定時ダッシュを決め嫉妬で脳が焼かれます。",
+    text: "💬 同僚の離脱: 隣の席のプロが生々しいタメ息と共に「お先に失礼します」と定時ダッシュを決めて嫉妬で脳が焼かれます。",
     effect: (s) => { s.mentalGauge = Math.max(CONFIG.MENTAL.MIN, s.mentalGauge - 25); },
     type: 'error'
   },
@@ -262,7 +262,7 @@ const randomEvents = [
     type: 'error'
   },
   {
-    text: "💻 Windows Update: 『更新プログラムを構成しています』。このタイミングで強制再起動の恐怖が脳裏をよぎる！",
+    text: "💻 Windows Update: 『更新プログラムを構成しています。』このタイミングで強制再起動の恐怖が脳裏をよぎる！",
     effect: (s) => { s.mentalGauge = Math.max(CONFIG.MENTAL.MIN, s.mentalGauge - 15); },
     type: 'error'
   },
@@ -272,7 +272,7 @@ const randomEvents = [
     type: 'warn'
   },
   {
-    text: "👀 視線感知: 斜め後ろの席の先輩が、じっとこちらの画面を見つめている気がする。Qiitaのタブをそっと閉じた。",
+    text: "👀 視線感知: 斜め後ろの席の先輩がコチラの画面を見つめている気がする。Qiitaのタブをそっと閉じた。",
     effect: (s) => { s.mentalGauge = Math.max(CONFIG.MENTAL.MIN, s.mentalGauge - 12); },
     type: 'warn'
   },
