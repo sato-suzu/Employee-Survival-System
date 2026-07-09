@@ -1,4 +1,4 @@
-// ==========================================
+く// ==========================================
 // 状態管理を一元化
 // ==========================================
 const state = {
@@ -199,7 +199,7 @@ const randomEvents = [
   type: 'info'
 },
 {
-  text: "🔥 障害対応召喚: 17時44分、突然システム障害アラートが鳴りました。世界が終わります。",
+  text: "🔥 障害対応召喚: 定時前に突然システム障害アラートが鳴りました。世界が終わります。",
   effect: (s) => { 
     s.mentalGauge = Math.max(CONFIG.MENTAL.MIN, s.mentalGauge - 35);
     s.bossDistance = Math.max(CONFIG.BOSS.MIN_DISTANCE, s.bossDistance - 1.0);
@@ -247,7 +247,7 @@ const randomEvents = [
     type: 'warn'
   },
   {
-    text: "💬 同僚の離脱: 隣の席のプロが生々しいタメ息と共に「お先に失礼します」と定時ダッシュを決め、嫉妬で脳が焼かれます。",
+    text: "💬 同僚の離脱: 隣の席のプロが生々しいタメ息と共に「お先に失礼します」と定時ダッシュを決め嫉妬で脳が焼かれます。",
     effect: (s) => { s.mentalGauge = Math.max(CONFIG.MENTAL.MIN, s.mentalGauge - 25); },
     type: 'error'
   },
@@ -277,7 +277,7 @@ const randomEvents = [
     type: 'warn'
   },
   {
-    text: "🍫 秘密の備蓄: 引き出しの奥から賞味期限が3ヶ月切れたチョコを発見。背に腹は代えられない、摂取！",
+    text: "🍫 秘密の備蓄: 引き出しの奥から賞味期限が3ヶ月切れたチョコを発見。背に腹は代えられないので摂取！",
     effect: (s) => { s.mentalGauge = Math.min(CONFIG.MENTAL.MAX, s.mentalGauge + 15); },
     type: 'info'
   },
@@ -295,7 +295,7 @@ const randomEvents = [
     type: 'error'
   },
   {
-    text: "💥 Outlook爆発: 全社宛ての誤送信スレッドに「各位、返信の全体送信をやめてください」という全体返信が連鎖し、メールボックスが機能停止。",
+    text: "💥 Outlook爆発: 全社宛ての誤送信スレッドに「各位、返信の全体送信をやめてください」という全体返信が連鎖しメールボックスが機能停止。",
     effect: (s) => { s.mentalGauge = Math.max(CONFIG.MENTAL.MIN, s.mentalGauge - 15); },
     type: 'error'
   },
@@ -305,12 +305,12 @@ const randomEvents = [
     type: 'warn'
   },
   {
-    text: "🥱 謎の朝礼: 連絡事項ゼロ。「今週も折り返しですが、気合を入れていきましょう」という精神論だけを浴びる儀式。",
+    text: "🥱 謎の朝礼: 連絡事項ゼロ。「今週も折り返しですが気合を入れていきましょう」という精神論だけを浴びる儀式。",
     effect: (s) => { s.mentalGauge = Math.max(CONFIG.MENTAL.MIN, s.mentalGauge - 12); },
     type: 'warn'
   },
   {
-    text: "👁‍局 部長巡回: 腕を後ろで組みながらフロアを鋭い眼光で練り歩くボス（大物）を検知！強制的に間合いを詰められます！",
+    text: "👁‍局 部長巡回: 腕を後ろで組みながらフロアを鋭い眼光で練り歩くボスを検知！強制的に間合いを詰められます！",
     effect: (s) => { 
       s.bossDistance = Math.max(CONFIG.BOSS.MIN_DISTANCE, s.bossDistance - 2.0); 
       s.mentalGauge = Math.max(CONFIG.MENTAL.MIN, s.mentalGauge - 10);
@@ -331,7 +331,7 @@ const randomEvents = [
     type: 'warn'
   },
   {
-    text: "☠️ VPN死亡: 「リモートホストへの接続が切断されました」。社内システムへのアクセスが全滅し、何もできなくなりました（手遅れ）。",
+    text: "☠️ VPN死亡: 「リモートホストへの接続が切断されました」。社内システムへのアクセスが全滅し何もできなくなりました（手遅れ）。",
     effect: (s) => { 
       s.mentalGauge = Math.max(CONFIG.MENTAL.MIN, s.mentalGauge - 25); 
       unlockAchievement('VPN_APOCALYPSE');
@@ -765,7 +765,7 @@ function unlockAchievement(id) {
   state.unlockedAchievements.add(id);
   const a = ACHIEVEMENTS[id];
   
-  // ① 変更をストレージに即座に自動保存（セーブ）
+  // 変更をストレージに即座に自動保存（セーブ）
   saveAchievements();
 
   // ログエリアへのログ出力
