@@ -437,24 +437,50 @@ function toggleLifehackButtons(enabled) {
   });
 }
 
+// ==========================================
+// メンタル残量に応じた色変更・点滅
+// ==========================================
 function updateMentalUI() {
   const mentalEl = document.getElementById('mental');
-  if (!mentalEl) return;
-  mentalEl.innerText = state.mentalGauge;
-
   const gaugeMental = document.getElementById('gauge-mental');
-  if (gaugeMental) gaugeMental.value = state.mentalGauge;
+  if (!mentalEl || !gaugeMental) return; // NullReferenceException ガード
 
-  if (state.mentalGauge > CONFIG.MENTAL.THRESHOLD_WARN) mentalEl.style.color = '#fbbf24';
-  else if (state.mentalGauge > CONFIG.MENTAL.THRESHOLD_DANGER) mentalEl.style.color = '#f97316';
-  else mentalEl.style.color = '#ef4444';
+  const currentGauge = state.mentalGauge;
+  
+  // テキスト数値の更新
+  mentalEl.innerText = currentGauge;
+  gaugeMental.value = currentGauge;
+
+  // 状態クラスのリセット
+  gaugeMental.classList.remove('mental-stable', 'mental-fatigue', 'mental-danger', 'mental-critical');
+
+  if (currentGauge >= 71) {
+    // 71〜100：緑
+    gaugeMental.classList.add('mental-stable');
+    mentalEl.style.color = '#22c55e';
+  } 
+  else if (currentGauge >= 41) {
+    // 41〜70：黄色
+    gaugeMental.classList.add('mental-fatigue');
+    mentalEl.style.color = '#eab308';
+  } 
+  else if (currentGauge >= 21) {
+    // 21〜40：オレンジ
+    gaugeMental.classList.add('mental-danger');
+    mentalEl.style.color = '#f97316';
+  } 
+  else {
+    // 0〜20：赤＋点滅
+    gaugeMental.classList.add('mental-critical');
+    mentalEl.style.color = '#ef4444';
+  }
 }
 
 // ==========================================
-// ルーチン制御
+// コアロジック（ルーチン制御）
 // ==========================================
 function startRoutine() {
-  // 【多重起動ガード】既にバックグラウンドで回っているなら開始をブロックする
+  // 【多重起動ガード】既にバックグラウンドで回っているなら、開始をブロックする
   if (state.loopRunning) {
     appendLog("[SYSTEM] 警告: 定時退勤ルーチンは既に稼働中です。多重起動を防止しました。", "warn");
     return;
@@ -790,14 +816,14 @@ function launchConfetti() {
 }
 
 // ==========================================
-// 💾 ストレージ操作関数
+// 💾 ストレージ操作関数（Promiseキューによるレースコンディション完全対策）
 // ==========================================
 let achievementSaveQueue = Promise.resolve();
 
 function saveAchievements() {
   if (typeof chrome !== 'undefined' && chrome.storage?.local) {
     
-    // データの先祖返りを防ぐためチェインキュー化
+    //データの先祖返りを防ぐためチェインでキュー化する
     achievementSaveQueue = achievementSaveQueue.then(() => {
       const listToSave = [...state.unlockedAchievements];
       return chrome.storage.local.set({ savedAchievements: listToSave });
@@ -838,7 +864,7 @@ async function unlockAchievement(id) {
   state.unlockedAchievements.add(id);
   const a = ACHIEVEMENTS[id];
   
-  // キューがディスクへの書き込みを終えるのを確実に待つ（ポップアップの即死、データの破損防止）
+  // キューがディスクへの書き込みを終えるのを確実に待つ（ポップアップの即死・データの破損防止）
   await saveAchievements();
 
   appendLog(`🌟⭐【実績解除 / ACHIEVEMENT UNLOCKED】⭐🌟`, 'achievement');
