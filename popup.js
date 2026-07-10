@@ -797,7 +797,7 @@ let achievementSaveQueue = Promise.resolve();
 function saveAchievements() {
   if (typeof chrome !== 'undefined' && chrome.storage?.local) {
     
-    // データの逆転上書きを防ぐため、チェインキュー化する
+    // データの先祖返りを防ぐためチェインキュー化
     achievementSaveQueue = achievementSaveQueue.then(() => {
       const listToSave = [...state.unlockedAchievements];
       return chrome.storage.local.set({ savedAchievements: listToSave });
@@ -838,7 +838,7 @@ async function unlockAchievement(id) {
   state.unlockedAchievements.add(id);
   const a = ACHIEVEMENTS[id];
   
-  // キューがディスクへの書き込みを終えるのを確実に待つ（ポップアップの即死・データの破損防止）
+  // キューがディスクへの書き込みを終えるのを確実に待つ（ポップアップの即死、データの破損防止）
   await saveAchievements();
 
   appendLog(`🌟⭐【実績解除 / ACHIEVEMENT UNLOCKED】⭐🌟`, 'achievement');
