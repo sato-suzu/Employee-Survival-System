@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Employee Survival System",
   "version": "1.0.5",
-  "description": "定時退勤生存ルーチンを監視・シミュレートします。",
+  "description": "社畜の精神力を管理しながら定時退勤を目指すミニゲームです。",
   "side_panel": {
     "default_path": "popup.html"
   },
@@ -11,10 +11,6 @@
   },
   "permissions": [
     "sidePanel",
-    "tabs",
-    "activeTab"
-  ],
-  "host_permissions": [
-    "*://*/*"
+    "storage"
   ]
 }
