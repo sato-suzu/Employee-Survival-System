@@ -451,10 +451,10 @@ function updateMentalUI() {
 }
 
 // ==========================================
-// コアロジック（ルーチン制御）
+// ルーチン制御
 // ==========================================
 function startRoutine() {
-  // 【多重起動ガード】既にバックグラウンドで回っているなら、開始をブロックする
+  // 【多重起動ガード】既にバックグラウンドで回っているなら開始をブロックする
   if (state.loopRunning) {
     appendLog("[SYSTEM] 警告: 定時退勤ルーチンは既に稼働中です。多重起動を防止しました。", "warn");
     return;
@@ -500,7 +500,7 @@ function startRoutine() {
 }
 
 // ==========================================
-// メインループ（try...finallyによるフラグのライフサイクル保証）
+// メインループ
 // ==========================================
 async function loop() {
   state.loopRunning = true; // ロックを確立
@@ -634,7 +634,7 @@ function shutdownSystem() {
   
   toggleLifehackButtons(false);
 
-  // カフェインゾンビ防止：アクティブなタイマーがあれば確実に明示破棄
+  // アクティブなタイマーがあれば確実に明示破棄
   if (state.caffeineTimeoutId !== null) {
     clearTimeout(state.caffeineTimeoutId);
     state.caffeineTimeoutId = null; 
@@ -790,14 +790,14 @@ function launchConfetti() {
 }
 
 // ==========================================
-// 💾 ストレージ操作関数（Promiseキューによるレースコンディション完全対策）
+// 💾 ストレージ操作関数
 // ==========================================
 let achievementSaveQueue = Promise.resolve();
 
 function saveAchievements() {
   if (typeof chrome !== 'undefined' && chrome.storage?.local) {
     
-    // 同時爆撃によるデータの逆転上書きを防ぐため、チェインで完全に直列化（キュー化）する
+    // データの逆転上書きを防ぐため、チェインキュー化する
     achievementSaveQueue = achievementSaveQueue.then(() => {
       const listToSave = [...state.unlockedAchievements];
       return chrome.storage.local.set({ savedAchievements: listToSave });
