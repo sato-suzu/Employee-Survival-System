@@ -10,6 +10,7 @@ const state = {
   audioCtx: null,          // AudioContext シングルトン保持用
   caffeineTimeoutId: null, // カフェインデバフのタイマーID保持用
   bossDistance: 5.0,       // 上司の初期位置
+　caffeineStack: 0,   
   
   // --- 実績システム用状態管理 ---
   unlockedAchievements: new Set(),
