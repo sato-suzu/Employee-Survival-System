@@ -97,7 +97,7 @@ const ACHIEVEMENTS = {
 };
 
 // ==========================================
-// 【共通化】メンタル変動＆UI更新カプセル化関数
+// 【共通化】メンタル変動＆UI更新関数
 // ==========================================
 function modifyMental(amount) {
   if (amount > 0) {
@@ -816,14 +816,14 @@ function launchConfetti() {
 }
 
 // ==========================================
-// 💾 ストレージ操作関数（Promiseキューによるレースコンディション完全対策）
+// ストレージ操作関数
 // ==========================================
 let achievementSaveQueue = Promise.resolve();
 
 function saveAchievements() {
   if (typeof chrome !== 'undefined' && chrome.storage?.local) {
     
-    //データの先祖返りを防ぐためチェインでキュー化する
+    //データの先祖返りを防ぐためチェインでキュー化する（Promiseキューによるレースコンディション対策）
     achievementSaveQueue = achievementSaveQueue.then(() => {
       const listToSave = [...state.unlockedAchievements];
       return chrome.storage.local.set({ savedAchievements: listToSave });
