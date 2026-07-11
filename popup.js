@@ -323,7 +323,7 @@ const randomEvents = [
     type: 'warn'
   },
   {
-    text: "👁‍局 部長巡回: 腕を後ろで組みながらフロアを鋭い眼光で練り歩くボスを検知！強制的に間合いを詰められます！",
+    text: "👁‍ 部長巡回: 腕を後ろで組みながらフロアを鋭い眼光で練り歩くボスを検知！強制的に間合いを詰められます！",
     effect: (s) => { 
       s.bossDistance = Math.max(CONFIG.BOSS.MIN_DISTANCE, s.bossDistance - 2.0); 
       modifyMental(-10);
@@ -357,7 +357,7 @@ const randomEvents = [
     type: 'warn'
   },
   {
-    text: "💣 Slackスタンプ爆撃: チャンネル内で謎のスタンプ大喜利が勃変。通知の赤いバッジ（数字）が狂ったように増えていく恐怖。",
+    text: "💣 Slackスタンプ爆撃: チャンネル内で謎のスタンプ大喜利が発生。通知の赤いバッジ（数字）が狂ったように増えていく恐怖。",
     effect: (s) => { 
       modifyMental(-7); 
       unlockAchievement('SLACK_BOMB');
@@ -559,13 +559,12 @@ async function loop() {
         }
       } else {
         if (state.isBossAlerted) {
-          appendLog(`🍃 状況報告: 奴が離れていきました（現在値: ${bossDistStr}m）。偽装を一時解除します。`);
+          appendLog(`🍃 状況報告: 奴が離れていきました（現在値: ${bossDistStr}m）。偽装を解除します。`);
           state.isBossAlerted = false;
           document.querySelector('.container')?.classList.remove('danger-zone');
         }
       }
 
-      // --- 【修正】上司が近くにいても「大波（トイレ）」やランダムイベントは発生＆進行する ---
       if (state.isToiletEmergency) {
         state.toiletCountdown--;
 
@@ -607,7 +606,7 @@ async function loop() {
 
       playBeep();
 
-      // --- 【修正】時空の歪み修正：上司が近くにいても時間は流れ、定時になれば帰れる ---
+      // --- 【修正】上司が近くにいても時間は進み定時になれば帰れる ---
       if (checkTimeReached(currentTime, state.targetTime) && !state.isHomeProtocolExecuted) {
         state.isHomeProtocolExecuted = true;
         appendLog("[SYSTEM] EVADING_ALL_OVERTIME 【定時ダッシュ！】");
