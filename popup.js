@@ -694,30 +694,36 @@ function useToilet() {
   }
 }
 
+// タイマーは1つにまとめつつ、デバフの倍率（スタック）を保持する
+// state に caffeineStack: 0 を定義しておく
+
 function useCaffeine() {
   if (!state.isBoredToDeath) return;
 
   state.totalCaffeineConsumedMl += 250;
+  state.caffeineStack++; // カフェインの借金を加算
+  
   modifyMental(CONFIG.LIFEHACK.CAFFEINE_HEAL);
   appendLog(`[LIFEHACK] エナジードリンクをキメました。脳を強制駆動 (+${CONFIG.LIFEHACK.CAFFEINE_HEAL})`, 'warn');
 
-  state.caffeineCount++;
-  if (state.caffeineCount >= 3) {
+  if (state.caffeineStack >= 3) {
     unlockAchievement('CAFFEINE_ADDICT');
+    unlockAchievement('OVERDOSE'); // ここで過剰摂取も解除できる
   }
 
-  if (state.caffeineTimeoutId !== null) {
-    clearTimeout(state.caffeineTimeoutId);
-    state.caffeineTimeoutId = null; 
-  }
+  // 既存のタイマーがあればリセットして、デバフを後ろに伸ばす
+  if (state.caffeineTimeoutId !== null) clearTimeout(state.caffeineTimeoutId);
 
   state.caffeineTimeoutId = setTimeout(() => {
     state.caffeineTimeoutId = null; 
 
     if (state.isBoredToDeath) {
-      appendLog(`[DEBUFF] カフェインの加護が終了。猛烈な反動が脳を襲う (-${CONFIG.LIFEHACK.CAFFEINE_DEBUFF})`, 'error');
-      consumeMental(CONFIG.LIFEHACK.CAFFEINE_DEBUFF);
+      // 溜まったスタック分、一気に崩壊する
+      const totalDamage = CONFIG.LIFEHACK.CAFFEINE_DEBUFF * state.caffeineStack;
+      appendLog(`[DEBUFF] カフェインの加護が終了。${state.caffeineStack}本分の猛烈な反動が脳を襲う (-${totalDamage})`, 'error');
+      consumeMental(totalDamage);
     }
+    state.caffeineStack = 0; // 返済完了
   }, CONFIG.LIFEHACK.CAFFEINE_DURATION_MS);
 }
 
@@ -864,7 +870,7 @@ async function unlockAchievement(id) {
   state.unlockedAchievements.add(id);
   const a = ACHIEVEMENTS[id];
   
-  // キューがディスクへの書き込みを終えるのを確実に待つ（ポップアップの即死・データの破損防止）
+  // キューがディスクへの書き込みを終えるのを確実に待つ（データの破損防止）
   await saveAchievements();
 
   appendLog(`🌟⭐【実績解除 / ACHIEVEMENT UNLOCKED】⭐🌟`, 'achievement');
