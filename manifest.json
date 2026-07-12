@@ -6,16 +6,16 @@
   "side_panel": {
     "default_path": "popup.html"
   },
+  "action": {
+    "default_title": "定時退勤生存ルーチンを起動"
+  },
   "background": {
     "service_worker": "background.js"
   },
   "permissions": [
     "sidePanel",
-    "tabs",
-    "activeTab"
-  ],
-  "host_permissions": [
-    "*://*/*"
+    "storage",
+    "tabs"
   ]
 }
 
