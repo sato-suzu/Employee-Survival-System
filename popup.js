@@ -16,11 +16,11 @@ const state = {
   unlockedAchievements: new Set(),
   caffeineCount: 0,
 
-  // --- トイレ用の状態管理（堅牢化） ---
+  // --- トイレ用の状態管理 ---
   isToiletEmergency: false, 
   toiletCountdown: 0,       // 残り秒数をメインループと完全同期
 
-  // --- ループ多重起動防止ガード ---
+  // --- ループ多重起動防止 ---
   loopRunning: false,
 
   // --- 統計カウンター ---
