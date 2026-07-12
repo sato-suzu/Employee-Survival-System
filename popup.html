@@ -68,8 +68,6 @@
       .gauge-label {
         min-width: 85px;
       }
-
-      /* --- [共通] プログレスバーの基底デザイン --- */
       progress {
         flex: 1;
         height: 12px;
@@ -78,7 +76,6 @@
         border: 1px solid #334155;
         overflow: hidden;
       }
-
       /* ==========================================
          メンタル残量に応じた状態定義
          ========================================== */
@@ -108,7 +105,7 @@
         100% { opacity: 0.3; filter: drop-shadow(0 0 8px #ef4444); }
       }
       
-      /* --- 上司距離ゲージの色 --- */
+      /* 上司距離ゲージの色（デフォルト：赤・警告系） */
       #gauge-distance::-webkit-progress-value { background-color: #ef4444; transition: width 0.3s ease; }
       #gauge-distance::-moz-progress-bar { background-color: #ef4444; }
 
@@ -165,3 +162,113 @@
       button:hover {
         background-color: #0369a1;
       }
+      button:disabled {
+        background-color: #334155;
+        color: #64748b;
+        cursor: not-allowed;
+      }
+      #btn-escape {
+        background-color: #ef4444;
+      }
+      #btn-escape:hover {
+        background-color: #dc2626;
+      }
+
+      /* アラート */
+      @keyframes red-alert-pulse {
+        0% { background-color: #1e293b; box-shadow: inset 0 0 20px rgba(239, 68, 68, 0); }
+        50% { background-color: #450a0a; box-shadow: inset 0 0 50px rgba(239, 68, 68, 0.6); border-color: #ef4444; }
+        100% { background-color: #1e293b; box-shadow: inset 0 0 20px rgba(239, 68, 68, 0); }
+      }
+
+      .danger-zone {
+        animation: red-alert-pulse 1.5s infinite ease-in-out;
+        border-color: #ef4444 !important;
+        color: #fca5a5 !important;
+      }
+      .danger-zone .gauge-label {
+        color: #ef4444 !important;
+      }
+
+      /* クラッカー・紙吹雪エフェクト */
+      .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        top: -10px;
+        z-index: 9999;
+        pointer-events: none;
+        border-radius: 2px;
+        animation: fall linear forwards;
+      }
+
+      @keyframes fall {
+        0% {
+          transform: translateY(0) rotate(0deg) translateX(0);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(105vh) rotate(720deg) translateX(var(--x-drift));
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="container">
+      <h1>EMPLOYEE SURVIVAL SYSTEM v1.0.6</h1>
+
+      <div class="status-box">
+        <div class="status-row">
+          <div>ステータス: <span id="status" class="status-val">READY</span></div>
+          <div class="achievement-badge">🏆 <span id="achieve-count">0</span> / <span id="achieve-total">0</span></div>
+        </div>
+        
+        <div class="gauge-container">
+          <span class="gauge-label">メンタル: <span id="mental" style="color: #fbbf24;">100</span></span>
+          <progress id="gauge-mental" max="100" value="100"></progress>
+        </div>
+        
+        <div class="gauge-container">
+          <span class="gauge-label">上司の距離: <span id="distance" style="color: #f87171;">5.0m</span></span>
+          <progress id="gauge-distance" max="5" value="5"></progress>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 15px; background-color: #0f172a; padding: 10px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;">
+        <label for="input-target-time" style="color: #38bdf8;">目標脱出時刻 (定時):</label>
+        <input type="time" id="input-target-time" value="17:45" style="background-color: #1e293b; color: #4ade80; border: 1px solid #334155; border-radius: 4px; padding: 3px 5px; font-family: inherit; font-size: 0.9rem; outline: none; width: 90px;">
+      </div>
+
+      <div style="margin-bottom: 15px; border: 1px dashed #334155; padding: 10px; border-radius: 4px;">
+        <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px;">MENTAL LIFEHACKS:</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+          <button id="btn-toilet" style="background-color: #0d9488; font-size: 0.75rem; padding: 5px 10px; flex: 1; min-width: 80px;">トイレ籠城</button>
+          <button id="btn-cafe" style="background-color: #b45309; font-size: 0.75rem; padding: 5px 10px; flex: 1; min-width: 80px;">エナドリ摂取</button>
+          <button id="btn-oshi" style="background-color: #db2777; font-size: 0.75rem; padding: 5px 10px; flex: 1; min-width: 80px;">推し凝視</button>
+        </div>
+      </div>
+
+      <div id="log-area">
+        <div style="color: #a7f3d0">[SYSTEM] 待機中... プログラムを起動してください。</div>
+      </div>
+
+      <div class="achievement-panel">
+        <div class="achievement-title">
+          <span>UNLOCKED ACHIEVEMENTS:</span>
+        </div>
+        <div id="achievement-list">
+          <span style="color: #64748b;">(未解除)</span>
+        </div>
+      </div>
+
+      <div class="btn-panel">
+        <button id="btn-start">プログラム起動</button>
+        <button id="btn-escape">緊急定時ダッシュ</button>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
