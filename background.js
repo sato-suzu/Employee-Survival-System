@@ -1,4 +1,4 @@
-// ==========================================
+//==========================================
 // 拡張機能アイコンクリックでサイドパネルを開く設定
 // ==========================================
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
@@ -23,5 +23,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     return true; // 非同期処理を維持
   }
-});
-
+})
