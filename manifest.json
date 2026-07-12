@@ -6,12 +6,15 @@
   "sidePanel": {
     "default_path": "popup.html"
   },
+  "action": {
+    "default_title": "定時退勤ルーチンを起動"
+  },
   "background": {
     "service_worker": "background.js"
   },
   "permissions": [
     "sidepanel",
     "storage",
-    "tabs" 
+    "tabs"
   ]
 }
