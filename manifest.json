@@ -3,7 +3,7 @@
   "name": "Employee Survival System",
   "version": "1.0.5",
   "description": "社畜の精神力を管理しながら定時退勤を目指すミニゲームです。",
-  "sidePanel": {
+  "sidepanel": {
     "default_path": "popup.html"
   },
   "action": {
