@@ -1,3 +1,12 @@
+// ==========================================
+// 拡張機能アイコンクリックでサイドパネルを開く設定
+// ==========================================
+chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => console.error("サイドパネルの設定に失敗:", error));
+
+// ==========================================
+// メッセージレシーバー（タブの偽装工作）
+// ==========================================
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "openWorkSite") {
     chrome.tabs.query({ active: true, currentWindow: true })
@@ -15,3 +24,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // 非同期処理を維持
   }
 });
+
