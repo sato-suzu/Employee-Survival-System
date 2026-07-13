@@ -390,9 +390,9 @@ const randomEvents = [
 // イベントリスナー初期化
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-  // ----- 【新規実装】ターゲット時間を現在時刻の15分後に動的設定 -----
+  // ----- ターゲット時間を現在時刻の15分後に動的設定 -----
   const now = new Date();
-  now.setMinutes(now.getMinutes() + 15); // 15分後に設定（ここでお好みの猶予時間に調整可能）
+  now.setMinutes(now.getMinutes() + 15); // 15分後に設定（ここで調整可能）
 
   const defaultHours = now.getHours();
   const defaultMinutes = now.getMinutes();
@@ -402,12 +402,11 @@ document.addEventListener('DOMContentLoaded', () => {
   state.targetTime.minutes = defaultMinutes;
   state.targetTime.seconds = 0;
 
-  // HTMLのinput要素（type="time"）に初期値を反映（例: "18:05" 形式）
+  // HTMLのinput要素（type="time"）に初期値を反映
   const timeInput = document.getElementById('input-target-time');
   if (timeInput) {
     timeInput.value = `${String(defaultHours).padStart(2, '0')}:${String(defaultMinutes).padStart(2, '0')}`;
   }
-  // -----------------------------------------------------------------
 
   const registerClick = (id, fn) => document.getElementById(id)?.addEventListener('click', fn);
 
@@ -631,7 +630,7 @@ if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
 
       playBeep();
 
-      // --- 【修正】上司が近くにいても時間は進み定時になれば帰れる ---
+      // --- 上司が近くにいても時間は進み定時になれば帰れる ---
       if (checkTimeReached(currentTime, state.targetTime) && !state.isHomeProtocolExecuted) {
         state.isHomeProtocolExecuted = true;
         appendLog("[SYSTEM] EVADING_ALL_OVERTIME 【定時ダッシュ！】");
@@ -678,6 +677,7 @@ function shutdownSystem() {
   state.isBoredToDeath = false;
   state.isToiletEmergency = false; 
   state.toiletCountdown = 0; 
+　state.caffeineStack = 0
   document.querySelector('.container')?.classList.remove('danger-zone');
   window.speechSynthesis.cancel(); 
 
@@ -757,7 +757,7 @@ function watchOshi() {
   if (!state.isBoredToDeath) return;
   if (state.mentalGauge > 20) {
   appendLog(
-    "[LIFEHACK] まだ理性が残っています。推しパワーは本当に限界になるまで温存しました。",
+    "[LIFEHACK] まだ理性が残っています。推しパワーは本当に限界になるまで温存しましょう。",
     "info"
   );
   return;
