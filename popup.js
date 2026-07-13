@@ -543,64 +543,57 @@ async function loop() {
       }
 
       // --- 【修正】上司の接近監視ロジックとイベント・通常ロジックの分離 ---
+      // ===== 上司警戒モード中は緊迫演出を優先 =====
       if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
-        document.querySelector('.container')?.classList.add('danger-zone');
-        speakWhisper("ヤバい、ヤバい");
-
-        if (!state.isBossAlerted) {
-          state.isBossAlerted = true;
-          appendLog(`💥 警告: 上司接近！（現在値: ${bossDistStr}m）『奴が来たーー！』`, 'warn');
-          appendLog("[SYSTEM] EMERGENCY MODE: FAKE DEEP THINKING STARTED.", 'error');
-
-          const randomUrl = fakeWorkSites[Math.floor(Math.random() * fakeWorkSites.length)];
-          if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
-            chrome.runtime.sendMessage({ action: "openWorkSite", url: randomUrl });
-          }
-        }
-      } else {
-        if (state.isBossAlerted) {
-          appendLog(`🍃 状況報告: 奴が離れていきました（現在値: ${bossDistStr}m）。偽装を解除します。`);
-          state.isBossAlerted = false;
-          document.querySelector('.container')?.classList.remove('danger-zone');
-        }
+        state.totalFakeActionsExecuted++;
+        appendLog(
+          `STATUS: EMERGENCY... [ACTION] ${fakeActions[2]} (全神経を画面に集中させています)`
+        );
       }
-
-      if (state.isToiletEmergency) {
+      // ===== 通常モード =====
+      else if (state.isToiletEmergency) {
         state.toiletCountdown--;
 
         if (state.toiletCountdown > 0) {
-          appendLog(`🚨 【大波警告】漏れるまであと ${state.toiletCountdown} 秒！！早くトイレボタンを押せ！！`, 'error');
+          appendLog(
+            `🚨 【大波警告】漏れるまであと ${state.toiletCountdown} 秒！！早くトイレボタンを押せ！！`,
+            'error'
+          );
         } else {
           setTargetText('status', 'SOCIAL_DEATH');
-          appendLog("[FATAL] 間に合いませんでした。エンジニアとしての尊厳が消滅しました。", 'error');
-          unlockAchievement('SOCIAL_DEATH'); 
+          appendLog(
+            "[FATAL] 間に合いませんでした。エンジニアとしての尊厳が消滅しました。",
+            'error'
+          );
+          unlockAchievement('SOCIAL_DEATH');
           shutdownSystem();
-          setTimeout(() => alert("社会的に死亡しました。着替えを持ってきてください。"), 100);
+          setTimeout(() => {
+            alert("社会的に死亡しました。着替えを持ってきてください。");
+          }, 100);
           break;
         }
-      } else {
+      }
+      else {
         const rng = Math.random();
 
         if (rng < CONFIG.PROBABILITY.TOILET_EMERGENCY) {
-          state.isToiletEmergency = true; 
-          state.toiletCountdown = 5; // 【修正】猶予を5秒に緩和（理不尽即死の回避）
-          appendLog("🚨 【緊急事態】お腹に突発的な『大波』を検知！！5秒以内にトイレに駆け込まないと社会的に死亡します！！", 'error');
-        } 
+          state.isToiletEmergency = true;
+          state.toiletCountdown = 5;
+          appendLog(
+            "🚨 【緊急事態】お腹に突発的な『大波』を検知！！5秒以内にトイレに駆け込まないと社会的に死亡します！！",
+            'error'
+          );
+        }
         else if (rng < CONFIG.PROBABILITY.RANDOM_EVENT) {
           state.totalEventsEncountered++;
           const ev = randomEvents[Math.floor(Math.random() * randomEvents.length)];
           appendLog(`[EVENT] ${ev.text}`, ev.type);
-          ev.effect(state); 
-        } 
+          ev.effect(state);
+        }
         else {
-          // 上司警戒中（1.0m未満）の場合は、偽装アクションログの出力を固定化して緊迫感を演出
-          if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
-            appendLog(`STATUS: EMERGENCY... [ACTION] ${fakeActions[2]} (全神経を画面に集中させています)`);
-          } else {
-            state.totalFakeActionsExecuted++;
-            const randomAction = fakeActions[Math.floor(Math.random() * fakeActions.length)];
-            appendLog(`STATUS: ACTIVE... [ACTION] ${randomAction}`);
-          }
+          state.totalFakeActionsExecuted++;
+          const randomAction = fakeActions[Math.floor(Math.random() * fakeActions.length)];
+          appendLog(`STATUS: ACTIVE... [ACTION] ${randomAction}`);
         }
       }
 
