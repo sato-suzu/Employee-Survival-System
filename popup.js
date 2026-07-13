@@ -390,9 +390,9 @@ const randomEvents = [
 // イベントリスナー初期化
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-  // ----- ターゲット時間を現在時刻の15分後に動的設定 -----
+  // ----- 【新規実装】ターゲット時間を現在時刻の15分後に動的設定 -----
   const now = new Date();
-  now.setMinutes(now.getMinutes() + 15); // 15分後に設定（ここで調整可能）
+  now.setMinutes(now.getMinutes() + 15); // 15分後に設定（ここでお好みの猶予時間に調整可能）
 
   const defaultHours = now.getHours();
   const defaultMinutes = now.getMinutes();
@@ -402,11 +402,12 @@ document.addEventListener('DOMContentLoaded', () => {
   state.targetTime.minutes = defaultMinutes;
   state.targetTime.seconds = 0;
 
-  // HTMLのinput要素（type="time"）に初期値を反映
+  // HTMLのinput要素（type="time"）に初期値を反映（例: "18:05" 形式）
   const timeInput = document.getElementById('input-target-time');
   if (timeInput) {
     timeInput.value = `${String(defaultHours).padStart(2, '0')}:${String(defaultMinutes).padStart(2, '0')}`;
   }
+  // -----------------------------------------------------------------
 
   const registerClick = (id, fn) => document.getElementById(id)?.addEventListener('click', fn);
 
@@ -564,7 +565,6 @@ async function loop() {
 // --- 上司接近監視ロジック ---
 // ===== 上司警戒モード中は緊迫演出を優先しつつ緊急イベント発生 =====
 if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
-  speakWhisper("ヤバい、ヤバい");
   state.totalFakeActionsExecuted++;
   // 上司接近中でも30%で緊急イベント発生
   if (Math.random() < 0.3) {
@@ -597,8 +597,6 @@ if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
             "[FATAL] 間に合いませんでした。エンジニアとしての尊厳が消滅しました。",
             'error'
           );
-
-          speakWhisper("ぶりゅ、ぶりゅ、ぶりゅりゅりゅ。");
           unlockAchievement('SOCIAL_DEATH');
           shutdownSystem();
           setTimeout(() => {
@@ -633,7 +631,7 @@ if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
 
       playBeep();
 
-      // --- 上司が近くにいても時間は進み定時になれば帰れる ---
+      // --- 【修正】上司が近くにいても時間は進み定時になれば帰れる ---
       if (checkTimeReached(currentTime, state.targetTime) && !state.isHomeProtocolExecuted) {
         state.isHomeProtocolExecuted = true;
         appendLog("[SYSTEM] EVADING_ALL_OVERTIME 【定時ダッシュ！】");
@@ -652,9 +650,7 @@ if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
         : CONFIG.MENTAL.CONSUME_PER_SEC;
 
       consumeMental(actualMentalConsume);
-      
 
-      
       if (!state.isBoredToDeath) break;
       await new Promise(r => setTimeout(r, 1000)); 
     }
@@ -682,7 +678,6 @@ function shutdownSystem() {
   state.isBoredToDeath = false;
   state.isToiletEmergency = false; 
   state.toiletCountdown = 0; 
-　state.caffeineStack = 0
   document.querySelector('.container')?.classList.remove('danger-zone');
   window.speechSynthesis.cancel(); 
 
@@ -762,7 +757,7 @@ function watchOshi() {
   if (!state.isBoredToDeath) return;
   if (state.mentalGauge > 20) {
   appendLog(
-    "[LIFEHACK] まだ理性が残っています。推しパワーは本当に限界になるまで温存しましょう。",
+    "[LIFEHACK] まだ理性が残っています。推しパワーは本当に限界になるまで温存しました。",
     "info"
   );
   return;
@@ -858,7 +853,7 @@ function launchConfetti() {
 }
 
 // ==========================================
-// ストレージ操作関数、Promiseチェーンでキュー化してデータ破壊を防止
+// ストレージ操作関数
 // ==========================================
 let achievementSaveQueue = Promise.resolve();
 
@@ -925,4 +920,3 @@ async function unlockAchievement(id) {
     listEl.appendChild(itemEl);
     listEl.scrollTop = listEl.scrollHeight; 
   }
-}
