@@ -564,6 +564,7 @@ async function loop() {
 // --- 上司接近監視ロジック ---
 // ===== 上司警戒モード中は緊迫演出を優先しつつ緊急イベント発生 =====
 if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
+  speakWhisper("ヤバい、ヤバい");
   state.totalFakeActionsExecuted++;
   // 上司接近中でも30%で緊急イベント発生
   if (Math.random() < 0.3) {
@@ -651,7 +652,7 @@ if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
         : CONFIG.MENTAL.CONSUME_PER_SEC;
 
       consumeMental(actualMentalConsume);
-      speakWhisper("ヤバい、ヤバい");
+      
 
       
       if (!state.isBoredToDeath) break;
