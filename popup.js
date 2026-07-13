@@ -715,21 +715,23 @@ function useCaffeine() {
     unlockAchievement('OVERDOSE'); 
   }
 
-  if (state.caffeineTimeoutId !== null) clearTimeout(state.caffeineTimeoutId);
-
+// カフェイン反動タイマー
+// すでに発動待ちなら延長しない
+if (state.caffeineTimeoutId === null) {
   state.caffeineTimeoutId = setTimeout(() => {
-    state.caffeineTimeoutId = null; 
-
+    state.caffeineTimeoutId = null;
     if (state.isBoredToDeath) {
-      // 溜まったスタック分、一気に崩壊する（NaNにならないよう修正）
-      const totalDamage = CONFIG.LIFEHACK.CAFFEINE_DEBUFF * state.caffeineStack;
-      appendLog(`[DEBUFF] カフェインの加護が終了。${state.caffeineStack}本分の猛烈な反動が脳を襲う (-${totalDamage})`, 'error');
+      const totalDamage =
+        CONFIG.LIFEHACK.CAFFEINE_DEBUFF * state.caffeineStack;
+      appendLog(
+        `[DEBUFF] カフェインの加護が終了。${state.caffeineStack}本分の猛烈な反動が脳を襲う (-${totalDamage})`,
+        'error'
+      );
       consumeMental(totalDamage);
     }
-    state.caffeineStack = 0; 
+    state.caffeineStack = 0;
   }, CONFIG.LIFEHACK.CAFFEINE_DURATION_MS);
 }
-
 function watchOshi() {
   if (!state.isBoredToDeath) return;
   if (state.mentalGauge > 20) {
