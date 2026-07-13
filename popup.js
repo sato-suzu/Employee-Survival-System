@@ -596,6 +596,8 @@ if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
             "[FATAL] 間に合いませんでした。エンジニアとしての尊厳が消滅しました。",
             'error'
           );
+
+          speakWhisper("ぶりゅ、ぶりゅ、ぶりゅりゅりゅ。");
           unlockAchievement('SOCIAL_DEATH');
           shutdownSystem();
           setTimeout(() => {
