@@ -542,14 +542,26 @@ async function loop() {
         unlockAchievement('CLOSE_CALL');
       }
 
-      // --- 【修正】上司の接近監視ロジックとイベント・通常ロジックの分離 ---
-      // ===== 上司警戒モード中は緊迫演出を優先 =====
-      if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
-        state.totalFakeActionsExecuted++;
-        appendLog(
-          `STATUS: EMERGENCY... [ACTION] ${fakeActions[2]} (全神経を画面に集中させています)`
-        );
-      }
+// --- 上司接近監視ロジック ---
+// ===== 上司警戒モード中は緊迫演出を優先しつつ緊急イベント発生 =====
+if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
+  state.totalFakeActionsExecuted++;
+  // 上司接近中でも30%で緊急イベント発生
+  if (Math.random() < 0.3) {
+    state.totalEventsEncountered++;
+    const emergencyEvent =
+      randomEvents[Math.floor(Math.random() * randomEvents.length)];
+    appendLog(
+      `[EMERGENCY EVENT] ${emergencyEvent.text}`,
+      emergencyEvent.type
+    );
+    emergencyEvent.effect(state);
+  } else {
+    appendLog(
+      `STATUS: EMERGENCY... [ACTION] ${fakeActions[2]} (全神経を画面に集中させています)`
+    );
+  }
+}
       // ===== 通常モード =====
       else if (state.isToiletEmergency) {
         state.toiletCountdown--;
