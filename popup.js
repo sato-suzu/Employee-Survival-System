@@ -46,7 +46,7 @@ const CONFIG = {
     INITIAL_DISTANCE: 5.0,
     MAX_DISTANCE: 5.0,
     MIN_DISTANCE: 0.1,
-    ALERT_DISTANCE: 1.0,
+    ALERT_DISTANCE: 1.0, // 1.0メートル未満の判定値
     WARP_DISTANCE: 0.2, 
     MOVE_SPEED_MAX: 0.8, 
   },
@@ -76,6 +76,9 @@ const CONFIG = {
     COLORS: ['#f43f5e', '#3b82f6', '#10b981', '#eab308', '#a855f7', '#ff7849']
   }
 };
+
+// 発話タスクを順番（シリアル）に解決するためのプロミスチェーン保持用変数
+let speechPromiseChain = Promise.resolve();
 
 // ==========================================
 // 実績マスターデータ定義
@@ -313,7 +316,7 @@ const randomEvents = [
     type: 'error'
   },
   {
-    text: "⚠️ コピー機詰まり: 自分の直前で「紙詰まり：複合機内部のレバーA1を開けてください」の絶望表示。なぜ自分が直さねばならんのか。",
+    text: "⚠️ コピー機詰まり: 自分の直前で「紙詰まり：複合機内部のレバーA1を開けてください」の絶望表示。なぜ自分が直さねば慢らんのか。",
     effect: (s) => { modifyMental(-10); },
     type: 'warn'
   },
@@ -390,9 +393,9 @@ const randomEvents = [
 // イベントリスナー初期化
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
-  // ----- 【新規実装】ターゲット時間を現在時刻の15分後に動的設定 -----
+  // ----- ターゲット時間を現在時刻の15分後に動的設定 -----
   const now = new Date();
-  now.setMinutes(now.getMinutes() + 15); // 15分後に設定（ここでお好みの猶予時間に調整可能）
+  now.setMinutes(now.getMinutes() + 15); // 15分後に設定
 
   const defaultHours = now.getHours();
   const defaultMinutes = now.getMinutes();
@@ -402,12 +405,11 @@ document.addEventListener('DOMContentLoaded', () => {
   state.targetTime.minutes = defaultMinutes;
   state.targetTime.seconds = 0;
 
-  // HTMLのinput要素（type="time"）に初期値を反映（例: "18:05" 形式）
+  // HTMLのinput要素（type="time"）に初期値を反映
   const timeInput = document.getElementById('input-target-time');
   if (timeInput) {
     timeInput.value = `${String(defaultHours).padStart(2, '0')}:${String(defaultMinutes).padStart(2, '0')}`;
   }
-  // -----------------------------------------------------------------
 
   const registerClick = (id, fn) => document.getElementById(id)?.addEventListener('click', fn);
 
@@ -514,7 +516,7 @@ function startRoutine() {
   state.isBossAlerted = false;
   state.bossDistance = CONFIG.BOSS.INITIAL_DISTANCE;
   state.caffeineCount = 0; 
-  state.caffeineStack = 0; // 【修正】リセット処理を追加
+  state.caffeineStack = 0; 
   state.isToiletEmergency = false; 
   state.toiletCountdown = 0;
 
@@ -562,43 +564,38 @@ async function loop() {
         unlockAchievement('CLOSE_CALL');
       }
 
-// --- 上司接近監視ロジック ---
-// ===== 上司警戒モード中は緊迫演出を優先しつつ緊急イベント発生 =====
-if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
-   speakWhisper("ヤバい、ヤバい");
-  state.totalFakeActionsExecuted++;
-  // 上司接近中でも30%で緊急イベント発生
-  if (Math.random() < 0.3) {
-    state.totalEventsEncountered++;
-    const emergencyEvent =
-      randomEvents[Math.floor(Math.random() * randomEvents.length)];
-    appendLog(
-      `[EMERGENCY EVENT] ${emergencyEvent.text}`,
-      emergencyEvent.type
-    );
-    emergencyEvent.effect(state);
-  } else {
-    appendLog(
-      `STATUS: EMERGENCY... [ACTION] ${fakeActions[2]} (全神経を画面に集中させています)`
-    );
-  }
-}
+      // --- 上司接近監視ロジック ---
+      // ===== 上司警戒モード中は緊迫演出を優先しつつ緊急イベント発生 =====
+      if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
+        state.totalFakeActionsExecuted++;
+
+        // 💡 1m未満に接近時、プロミスチェーンに発話タスクを追加してシリアル実行（重なり防止）
+        speechPromiseChain = speechPromiseChain.then(() => {
+          // すでにシステムが停止（退勤・死亡等）している場合は発声しない
+          if (!state.isBoredToDeath) return Promise.resolve();
+          return speakWhisperAsync("ヤバい");
+        });
+
+        // 上司接近中でも30%で緊急イベント発生
+        if (Math.random() < 0.3) {
+          state.totalEventsEncountered++;
+          const emergencyEvent = randomEvents[Math.floor(Math.random() * randomEvents.length)];
+          appendLog(`[EMERGENCY EVENT] ${emergencyEvent.text}`, emergencyEvent.type);
+          emergencyEvent.effect(state);
+        } else {
+          appendLog(`STATUS: EMERGENCY... [ACTION] ${fakeActions[2]} (全神経を画面に集中させています)`);
+        }
+      }
       // ===== 通常モード =====
       else if (state.isToiletEmergency) {
         state.toiletCountdown--;
 
         if (state.toiletCountdown > 0) {
-          appendLog(
-            `🚨 【大波警告】漏れるまであと ${state.toiletCountdown} 秒！！早くトイレボタンを押せ！！`,
-            'error'
-          );
+          appendLog(`🚨 【大波警告】漏れるまであと ${state.toiletCountdown} 秒！！早くトイレボタンを押せ！！`, 'error');
         } else {
           setTargetText('status', 'SOCIAL_DEATH');
-          appendLog(
-            "[FATAL] 間に合いませんでした。エンジニアとしての尊厳が消滅しました。",
-            'error'
-          );
-          speakWhisper("ぶりゅ、ぶりゅ、ぶりゅりゅりゅ。");
+          appendLog("[FATAL] 間に合いませんでした。エンジニアとしての尊厳が消滅しました。", 'error');
+          await speakWhisperAsync("ぶりゅ、ぶりゅ、ぶりゅりゅりゅ。");
           unlockAchievement('SOCIAL_DEATH');
           shutdownSystem();
           setTimeout(() => {
@@ -613,10 +610,7 @@ if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
         if (rng < CONFIG.PROBABILITY.TOILET_EMERGENCY) {
           state.isToiletEmergency = true;
           state.toiletCountdown = 5;
-          appendLog(
-            "🚨 【緊急事態】お腹に突発的な『大波』を検知！！5秒以内にトイレに駆け込まないと社会的に死亡します！！",
-            'error'
-          );
+          appendLog("🚨 【緊急事態】お腹に突発的な『大波』を検知！！5秒以内にトイレに駆け込まないと社会的に死亡します！！", 'error');
         }
         else if (rng < CONFIG.PROBABILITY.RANDOM_EVENT) {
           state.totalEventsEncountered++;
@@ -633,7 +627,7 @@ if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
 
       playBeep();
 
-      // --- 【修正】上司が近くにいても時間は進み定時になれば帰れる ---
+      // --- 上司が近くにいても時間は進み定時になれば帰れる ---
       if (checkTimeReached(currentTime, state.targetTime) && !state.isHomeProtocolExecuted) {
         state.isHomeProtocolExecuted = true;
         appendLog("[SYSTEM] EVADING_ALL_OVERTIME 【定時ダッシュ！】");
@@ -646,7 +640,8 @@ if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
         shutdownSystem();
         break;
       }
-  // 上司が近くにいる場合（1.0m未満）は、精神すり減り速度が2倍になる過酷仕様に変更
+
+      // 上司が近くにいる場合（1.0m未満）は、精神すり減り速度が2倍になる過酷仕様
       const actualMentalConsume = state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE 
         ? CONFIG.MENTAL.CONSUME_PER_SEC * 2 
         : CONFIG.MENTAL.CONSUME_PER_SEC;
@@ -680,8 +675,12 @@ function shutdownSystem() {
   state.isBoredToDeath = false;
   state.isToiletEmergency = false; 
   state.toiletCountdown = 0; 
+  state.caffeineStack = 0;
   document.querySelector('.container')?.classList.remove('danger-zone');
+  
+  // 音声停止とプロミスチェーンのクリア
   window.speechSynthesis.cancel(); 
+  speechPromiseChain = Promise.resolve();
 
   const btnStart = document.getElementById('btn-start');
   const inputTime = document.getElementById('input-target-time');
@@ -727,7 +726,7 @@ function useCaffeine() {
   if (!state.isBoredToDeath) return;
 
   state.totalCaffeineConsumedMl += 250;
-  state.caffeineStack++; //
+  state.caffeineStack++; 
 
   modifyMental(CONFIG.LIFEHACK.CAFFEINE_HEAL);
   appendLog(`[LIFEHACK] エナジードリンクをキメました。脳を強制駆動 (+${CONFIG.LIFEHACK.CAFFEINE_HEAL})`, 'warn');
@@ -737,33 +736,26 @@ function useCaffeine() {
     unlockAchievement('OVERDOSE'); 
   }
 
-// カフェイン反動タイマー
-// すでに発動待ちなら延長しない
-if (state.caffeineTimeoutId === null) {
-  state.caffeineTimeoutId = setTimeout(() => {
-    state.caffeineTimeoutId = null;
-    if (state.isBoredToDeath) {
-      const totalDamage =
-        CONFIG.LIFEHACK.CAFFEINE_DEBUFF * state.caffeineStack;
-      appendLog(
-        `[DEBUFF] カフェインの加護が終了。${state.caffeineStack}本分の猛烈な反動が脳を襲う (-${totalDamage})`,
-        'error'
-      );
-      consumeMental(totalDamage);
-    }
-    state.caffeineStack = 0;
-  }, CONFIG.LIFEHACK.CAFFEINE_DURATION_MS);
+  // カフェイン反動タイマー
+  if (state.caffeineTimeoutId === null) {
+    state.caffeineTimeoutId = setTimeout(() => {
+      state.caffeineTimeoutId = null;
+      if (state.isBoredToDeath) {
+        const totalDamage = CONFIG.LIFEHACK.CAFFEINE_DEBUFF * state.caffeineStack;
+        appendLog(`[DEBUFF] カフェインの加護が終了。${state.caffeineStack}本分の猛烈な反動が脳を襲う (-${totalDamage})`, 'error');
+        consumeMental(totalDamage);
+      }
+      state.caffeineStack = 0;
+    }, CONFIG.LIFEHACK.CAFFEINE_DURATION_MS);
+  }
 }
-}
+
 function watchOshi() {
   if (!state.isBoredToDeath) return;
   if (state.mentalGauge > 20) {
-  appendLog(
-    "[LIFEHACK] まだ理性が残っています。推しパワーは本当に限界になるまで温存しました。",
-    "info"
-  );
-  return;
-}
+    appendLog("[LIFEHACK] まだ理性が残っています。推しパワーは本当に限界になるまで温存しましょう。", "info");
+    return;
+  }
   if (state.mentalGauge <= 20) {
     unlockAchievement('OSHI_SAVIOR');
   }
@@ -830,6 +822,23 @@ function speakWhisper(text) {
   window.speechSynthesis.speak(uttr);
 }
 
+// 💡 【新規実装】Web Speech APIの発音完了を待機してresolveするPromise関数
+function speakWhisperAsync(text) {
+  return new Promise((resolve) => {
+    const uttr = new SpeechSynthesisUtterance(text);
+    uttr.lang = 'ja-JP';
+    uttr.volume = CONFIG.SPEECH.VOLUME; 
+    uttr.rate = CONFIG.SPEECH.RATE;    
+    uttr.pitch = CONFIG.SPEECH.PITCH;   
+
+    // 再生完了、または何らかのエラーで途切れた場合にPromiseを解決して次のキューへ回す
+    uttr.onend = () => resolve();
+    uttr.onerror = () => resolve();
+
+    window.speechSynthesis.speak(uttr);
+  });
+}
+
 function launchConfetti() {
   for (let i = 0; i < CONFIG.CONFETTI.COUNT; i++) {
     const confetti = document.createElement('div');
@@ -872,8 +881,7 @@ function saveAchievements() {
 function loadSavedAchievements() {
   if (typeof chrome !== 'undefined' && chrome.storage?.local) {
     chrome.storage.local.get(['savedAchievements'], (result) => {
-      if (!result.savedAchievements ||
-          result.savedAchievements.length === 0) {
+      if (!result.savedAchievements || result.savedAchievements.length === 0) {
         return;
       }
       const listEl = document.getElementById('achievement-list');
@@ -883,12 +891,11 @@ function loadSavedAchievements() {
         if (ACHIEVEMENTS[id]) {
           state.unlockedAchievements.add(id);
           const itemEl = document.createElement('div');
-          itemEl.textContent =
-            `🏅 ${ACHIEVEMENTS[id].title} - ${ACHIEVEMENTS[id].desc}`;
+          itemEl.textContent = `🏅 ${ACHIEVEMENTS[id].title} - ${ACHIEVEMENTS[id].desc}`;
           listEl.appendChild(itemEl);
         }
       });
-      setTargetText('achieve-count',state.unlockedAchievements.size);
+      setTargetText('achieve-count', state.unlockedAchievements.size);
     });
   }
 }
@@ -903,6 +910,8 @@ async function unlockAchievement(id) {
   const a = ACHIEVEMENTS[id];
 
   await saveAchievements();
+
+　launchConfetti(); //紙吹雪
 
   appendLog(`🌟⭐【実績解除 / ACHIEVEMENT UNLOCKED】⭐🌟`, 'achievement');
   appendLog(`${a.title} : ${a.desc}`, 'achievement');
@@ -922,3 +931,4 @@ async function unlockAchievement(id) {
     listEl.appendChild(itemEl);
     listEl.scrollTop = listEl.scrollHeight; 
   }
+}
