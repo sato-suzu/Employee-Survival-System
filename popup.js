@@ -565,6 +565,7 @@ async function loop() {
 // --- 上司接近監視ロジック ---
 // ===== 上司警戒モード中は緊迫演出を優先しつつ緊急イベント発生 =====
 if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
+   speakWhisper("ヤバい、ヤバい");
   state.totalFakeActionsExecuted++;
   // 上司接近中でも30%で緊急イベント発生
   if (Math.random() < 0.3) {
@@ -597,6 +598,7 @@ if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
             "[FATAL] 間に合いませんでした。エンジニアとしての尊厳が消滅しました。",
             'error'
           );
+          speakWhisper("ぶりゅ、ぶりゅ、ぶりゅりゅりゅ。");
           unlockAchievement('SOCIAL_DEATH');
           shutdownSystem();
           setTimeout(() => {
