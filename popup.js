@@ -650,6 +650,8 @@ if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
         ? CONFIG.MENTAL.CONSUME_PER_SEC * 2 
         : CONFIG.MENTAL.CONSUME_PER_SEC;
 
+          speakWhisper("ヤバい、ヤバい");
+
       consumeMental(actualMentalConsume);
 
       if (!state.isBoredToDeath) break;
