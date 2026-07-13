@@ -720,7 +720,13 @@ function useCaffeine() {
 
 function watchOshi() {
   if (!state.isBoredToDeath) return;
-
+  if (state.mentalGauge > 20) {
+  appendLog(
+    "[LIFEHACK] まだ理性が残っています。推しパワーは本当に限界になるまで温存しました。",
+    "info"
+  );
+  return;
+}
   if (state.mentalGauge <= 20) {
     unlockAchievement('OSHI_SAVIOR');
   }
