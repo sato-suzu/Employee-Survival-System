@@ -732,6 +732,7 @@ if (state.caffeineTimeoutId === null) {
     state.caffeineStack = 0;
   }, CONFIG.LIFEHACK.CAFFEINE_DURATION_MS);
 }
+}
 function watchOshi() {
   if (!state.isBoredToDeath) return;
   if (state.mentalGauge > 20) {
