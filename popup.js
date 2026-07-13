@@ -568,8 +568,10 @@ async function loop() {
       // ===== 上司警戒モード中は緊迫演出を優先しつつ緊急イベント発生 =====
       if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
         state.totalFakeActionsExecuted++;
+document.querySelector('.container')?.classList.add('danger-zone');
 
-        // 💡 1m未満に接近時、プロミスチェーンに発話タスクを追加してシリアル実行（重なり防止）
+
+        // 1m未満に接近時、プロミスチェーンに発話タスクを追加してシリアル実行（重なり防止）
         speechPromiseChain = speechPromiseChain.then(() => {
           // すでにシステムが停止（退勤・死亡等）している場合は発声しない
           if (!state.isBoredToDeath) return Promise.resolve();
@@ -822,7 +824,7 @@ function speakWhisper(text) {
   window.speechSynthesis.speak(uttr);
 }
 
-// 💡 【新規実装】Web Speech APIの発音完了を待機してresolveするPromise関数
+// Web Speech APIの発音完了を待機してresolveするPromise関数
 function speakWhisperAsync(text) {
   return new Promise((resolve) => {
     const uttr = new SpeechSynthesisUtterance(text);
