@@ -849,22 +849,23 @@ function saveAchievements() {
 function loadSavedAchievements() {
   if (typeof chrome !== 'undefined' && chrome.storage?.local) {
     chrome.storage.local.get(['savedAchievements'], (result) => {
-      if (result.savedAchievements && Array.from(result.savedAchievements).length > 0) {
-        const listEl = document.getElementById('achievement-list');
-        if (listEl) listEl.textContent = ''; 
-
-        result.savedAchievements.forEach(id => {
-          if (ACHIEVEMENTS[id]) {
-            state.unlockedAchievements.add(id);
-
-            const itemEl = document.createElement('div');
-            itemEl.textContent = `🏅 ${ACHIEVEMENTS[id].title} - ${ACHIEVEMENTS[id].desc}`;
-            listEl.appendChild(itemEl);
-          }
-        });
-
-        setTargetText('achieve-count', state.unlockedAchievements.size);
+      if (!result.savedAchievements ||
+          result.savedAchievements.length === 0) {
+        return;
       }
+      const listEl = document.getElementById('achievement-list');
+      if (!listEl) return;
+      listEl.textContent = '';
+      result.savedAchievements.forEach(id => {
+        if (ACHIEVEMENTS[id]) {
+          state.unlockedAchievements.add(id);
+          const itemEl = document.createElement('div');
+          itemEl.textContent =
+            `🏅 ${ACHIEVEMENTS[id].title} - ${ACHIEVEMENTS[id].desc}`;
+          listEl.appendChild(itemEl);
+        }
+      });
+      setTargetText('achieve-count',state.unlockedAchievements.size);
     });
   }
 }
