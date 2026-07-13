@@ -390,6 +390,25 @@ const randomEvents = [
 // イベントリスナー初期化
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
+  // ----- 【新規実装】ターゲット時間を現在時刻の15分後に動的設定 -----
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + 15); // 15分後に設定（ここでお好みの猶予時間に調整可能）
+
+  const defaultHours = now.getHours();
+  const defaultMinutes = now.getMinutes();
+
+  // 内部状態のターゲット時間を上書き
+  state.targetTime.hours = defaultHours;
+  state.targetTime.minutes = defaultMinutes;
+  state.targetTime.seconds = 0;
+
+  // HTMLのinput要素（type="time"）に初期値を反映（例: "18:05" 形式）
+  const timeInput = document.getElementById('input-target-time');
+  if (timeInput) {
+    timeInput.value = `${String(defaultHours).padStart(2, '0')}:${String(defaultMinutes).padStart(2, '0')}`;
+  }
+  // -----------------------------------------------------------------
+
   const registerClick = (id, fn) => document.getElementById(id)?.addEventListener('click', fn);
 
   registerClick('btn-start', startRoutine);
@@ -405,6 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadSavedAchievements();
 });
+
 
 // ==========================================
 // UI・ログ制御用ヘルパー関数
