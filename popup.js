@@ -316,7 +316,7 @@ const randomEvents = [
     type: 'error'
   },
   {
-    text: "⚠️ コピー機詰まり: 自分の直前で「紙詰まり：複合機内部のレバーA1を開けてください」の絶望表示。なぜ自分が直さねば慢らんのか。",
+    text: "⚠️ コピー機詰まり: 自分の直前で「紙詰まり：複合機内部のレバーA1を開けてください」の絶望表示。なぜ自分が直さねばならんのか。",
     effect: (s) => { modifyMental(-10); },
     type: 'warn'
   },
@@ -912,8 +912,8 @@ async function unlockAchievement(id) {
   const a = ACHIEVEMENTS[id];
 
   await saveAchievements();
-
-　launchConfetti(); //紙吹雪
+  
+  launchConfetti(); //紙吹雪
 
   appendLog(`🌟⭐【実績解除 / ACHIEVEMENT UNLOCKED】⭐🌟`, 'achievement');
   appendLog(`${a.title} : ${a.desc}`, 'achievement');
