@@ -77,8 +77,54 @@ const CONFIG = {
   }
 };
 
-// 発話タスク用のプロミスチェーン保持用変数
-let speechPromiseChain = Promise.resolve();
+// ==========================================
+// 音声合成管理（Web Speech API 共通化クラス）
+// ==========================================
+class WhisperManager {
+  constructor(config) {
+    this.config = config;
+    this.queue = Promise.resolve();
+  }
+
+  /**
+   * 非同期で音声を発声し、完了を待つキューに追加する
+   * @param {string} text 発話するテキスト
+   * @returns {Promise<void>}
+   */
+  speak(text) {
+    // すでにシステムが停止している場合はキューをスキップ
+    if (!state.isBoredToDeath) return Promise.resolve();
+
+    this.queue = this.queue.then(() => {
+      return new Promise((resolve) => {
+        const uttr = new SpeechSynthesisUtterance(text);
+        uttr.lang = 'ja-JP';
+        uttr.volume = this.config.VOLUME;
+        uttr.rate = this.config.RATE;
+        uttr.pitch = this.config.PITCH;
+
+        // 再生完了、またはエラー時にPromiseを解決して次のキューへ回す
+        uttr.onend = () => resolve();
+        uttr.onerror = () => resolve();
+
+        window.speechSynthesis.speak(uttr);
+      });
+    });
+
+    return this.queue;
+  }
+
+  /**
+   * 現在の再生をすべて強制停止し、キューをリセットする
+   */
+  stopAll() {
+    window.speechSynthesis.cancel();
+    this.queue = Promise.resolve();
+  }
+}
+
+// 音声マネージャーのインスタンス化
+const whisper = new WhisperManager(CONFIG.SPEECH);
 
 // ==========================================
 // 実績マスターデータ定義
@@ -565,18 +611,12 @@ async function loop() {
       }
 
       // --- 上司接近監視ロジック ---
-      // ===== 上司警戒モード中は緊迫演出を優先しつつ緊急イベント発生 =====
       if (state.bossDistance < CONFIG.BOSS.ALERT_DISTANCE) {
         state.totalFakeActionsExecuted++;
-document.querySelector('.container')?.classList.add('danger-zone');
+        document.querySelector('.container')?.classList.add('danger-zone');
 
-
-        // 1m未満に接近時、プロミスチェーンに発話タスクを追加してシリアル実行（重なり防止）
-        speechPromiseChain = speechPromiseChain.then(() => {
-          // すでにシステムが停止（退勤・死亡等）している場合は発声しない
-          if (!state.isBoredToDeath) return Promise.resolve();
-          return speakWhisperAsync("ヤバい");
-        });
+        // ★共通化した WhisperManager で自動キューイング処理
+        whisper.speak("ヤバい");
 
         // 上司接近中でも30%で緊急イベント発生
         if (Math.random() < 0.3) {
@@ -597,7 +637,10 @@ document.querySelector('.container')?.classList.add('danger-zone');
         } else {
           setTargetText('status', 'SOCIAL_DEATH');
           appendLog("[FATAL] 間に合いませんでした。エンジニアとしての尊厳が消滅しました。", 'error');
-          await speakWhisperAsync("ぶりゅ、ぶりゅ、ぶりゅりゅりゅ。");
+          
+          // ★共通化したマネージャーで社会的死亡の断末魔を再生
+          await whisper.speak("ぶりゅ、ぶりゅ、ぶりゅりゅりゅ。");
+          
           unlockAchievement('SOCIAL_DEATH');
           shutdownSystem();
           setTimeout(() => {
@@ -680,9 +723,8 @@ function shutdownSystem() {
   state.caffeineStack = 0;
   document.querySelector('.container')?.classList.remove('danger-zone');
   
-  // 音声停止とプロミスチェーンのクリア
-  window.speechSynthesis.cancel(); 
-  speechPromiseChain = Promise.resolve();
+  // ★音声停止とプロミスチェーンのクリアをマネージャー経由で実行
+  whisper.stopAll();
 
   const btnStart = document.getElementById('btn-start');
   const inputTime = document.getElementById('input-target-time');
@@ -810,35 +852,6 @@ function checkTimeReached(now, target) {
   return (now.hours > target.hours) ||
     (now.hours === target.hours && now.minutes > target.minutes) ||
     (now.hours === target.hours && now.minutes === target.minutes && now.seconds >= target.seconds);
-}
-
-function speakWhisper(text) {
-  if (window.speechSynthesis.speaking) return;
-
-  const uttr = new SpeechSynthesisUtterance(text);
-  uttr.lang = 'ja-JP';
-  uttr.volume = CONFIG.SPEECH.VOLUME; 
-  uttr.rate = CONFIG.SPEECH.RATE;    
-  uttr.pitch = CONFIG.SPEECH.PITCH;   
-
-  window.speechSynthesis.speak(uttr);
-}
-
-// Web Speech APIの発音完了を待機してresolveするPromise関数
-function speakWhisperAsync(text) {
-  return new Promise((resolve) => {
-    const uttr = new SpeechSynthesisUtterance(text);
-    uttr.lang = 'ja-JP';
-    uttr.volume = CONFIG.SPEECH.VOLUME; 
-    uttr.rate = CONFIG.SPEECH.RATE;    
-    uttr.pitch = CONFIG.SPEECH.PITCH;   
-
-    // 再生完了、または何らかのエラーで途切れた場合にPromiseを解決して次のキューへ回す
-    uttr.onend = () => resolve();
-    uttr.onerror = () => resolve();
-
-    window.speechSynthesis.speak(uttr);
-  });
 }
 
 function launchConfetti() {
