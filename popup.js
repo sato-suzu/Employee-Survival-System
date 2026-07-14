@@ -182,14 +182,6 @@ const fakeActions = [
   "FOLDING ARMS GRIMLY (腕をがっちり組み、足元の電源タップを睨みつけてバグの根源を威嚇)"
 ];
 
-const fakeWorkSites = [
-  "https://itmedia.co.jp",
-  "https://stackoverflow.com",
-  "https://github.com",
-  "https://qiita.com",
-  "https://google.com"
-];
-
 // ==========================================
 // 社畜ランダムイベントデータ
 // ==========================================
