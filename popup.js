@@ -738,20 +738,89 @@ function shutdownSystem() {
 }
 
 // ==========================================
+// トイレ妨害イベントのマスターデータ
+// ==========================================
+const TOILET_OBSTACLE_EVENTS = [
+  // --- 元の5つ（微調整版） ---
+  {
+    text: "🚧 トイレ妨害：【上司の世間話エリア】トイレの前で上司が他部署の同僚と「最近の若者のタイピング速度」について軽い雑談中。ここでエンカウントすると高確率で捕まって話が長引くため、気配を消して静かに後退した…。",
+    effect: (s) => {
+      modifyMental(-12);
+      s.bossDistance = Math.max(CONFIG.BOSS.MIN_DISTANCE, s.bossDistance - 0.6);
+    }
+  },
+  {
+    text: "🚧 トイレ妨害：【配管クライシス（緊急メンテ中）】トイレの入り口を開けた瞬間、工具を持った設備業者と目が合いました。「あ、今配管の緊急修理中で使えないよ！」と無慈悲な宣告を受け、すごすごと引き返しました。",
+    effect: (s) => {
+      modifyMental(-15);
+    }
+  },
+  {
+    text: "🚧 トイレ妨害：【トイレットペーパー・ゼロ】間一髪で滑り込むもホルダーに鎮座するのは剥ぎ取られた茶色い芯のみ。ストックも枯渇しており、静かに絶望の撤退。",
+    effect: (s) => {
+      modifyMental(-12);
+    }
+  },
+  {
+    text: "🚧 トイレ妨害：【清掃員のイエローカード】入り口にそびえ立つ『清掃中・立入禁止』の冷酷な看板。あと少し待ってください！と言われた。",
+    effect: (s) => {
+      modifyMental(-10);
+    }
+  },
+  {
+    text: "🚧 トイレ妨害：【昼休み直後のデッドヒート】昼休み直後でトイレ待ち 5人！順番が全く進まない！",
+    effect: (s) => {
+      modifyMental(-18);
+      s.bossDistance = Math.max(CONFIG.BOSS.MIN_DISTANCE, s.bossDistance - 0.8);
+    }
+  },
+  {
+    text: "🚧 トイレ妨害：【カードキー不携帯】トイレの自動ドアの前に立った瞬間、首から社員証（セキュリティカード）を下げていないことに気づく。閉め出される恐怖によりサボり計画は頓挫した。",
+    effect: (s) => {
+      modifyMental(-10);
+    }
+  },
+  {
+    text: "🚧 トイレ妨害：【ドアロック・スタック】個室の鍵がやたらと固くスライドさせた瞬間「これ閉めたら二度と開かなくなるのでは？」という野生の直感が働きロックする前に命からがら脱出した。",
+    effect: (s) => {
+      modifyMental(-15);
+    }
+  }
+];
+
+// ==========================================
 // ライフハック（回復コマンド）
 // ==========================================
 function useToilet() {
   if (!state.isBoredToDeath) return;
 
   state.totalToiletEscapes++;
-  modifyMental(CONFIG.LIFEHACK.TOILET_HEAL);
 
+  // ------------------------------------------
+  // 大波（緊急事態）の時は妨害なし
+  // ------------------------------------------
   if (state.isToiletEmergency) {
     state.isToiletEmergency = false; 
     state.toiletCountdown = 0; 
-    appendLog(`🚽 【危機回避】間一髪セーフ！個室への滑り込みに成功し、尊厳は守られた。 (+${CONFIG.LIFEHACK.TOILET_HEAL})`, 'info');
-  } else {
-    appendLog(`[LIFEHACK] 個室トイレに避難完了。個人の尊厳を一時的に回復 (+${CONFIG.LIFEHACK.TOILET_HEAL})`, 'warn');
+    modifyMental(CONFIG.LIFEHACK.TOILET_HEAL);
+    appendLog(`✨ 無事個室へチェックイン！人間としての尊厳は守られた。 (+${CONFIG.LIFEHACK.TOILET_HEAL})`, 'info');
+  } 
+  // ------------------------------------------
+  // 通常時のトイレ時は50%の確率で妨害が発生
+  // ------------------------------------------
+  else {
+    const isObstructed = Math.random() < 0.50; // 50%の確率で妨害
+
+    if (isObstructed) {
+      // 妨害イベントをランダムに抽選
+      const obstacle = TOILET_OBSTACLE_EVENTS[Math.floor(Math.random() * TOILET_OBSTACLE_EVENTS.length)];
+      appendLog(obstacle.text, 'error');
+      obstacle.effect(state); // メンタル減、上司接近などのデバフ適用
+    } else {
+      // 妨害なし：無事サボり個室に避難成功
+      modifyMental(CONFIG.LIFEHACK.TOILET_HEAL);
+      appendLog(`[LIFEHACK] 誰もいない個室トイレの獲得に成功。完全なるパーソナルスペースで精神のデフラグを実行中。 (+${CONFIG.LIFEHACK.TOILET_HEAL})`, 'warn');
+    }
   }
 }
 
