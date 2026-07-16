@@ -14,7 +14,6 @@ const state = {
 
   // --- 実績システム用状態管理 ---
   unlockedAchievements: new Set(),
-  caffeineCount: 0,
 
   // --- トイレ用の状態管理 ---
   isToiletEmergency: false, 
@@ -551,9 +550,8 @@ function startRoutine() {
   // 状態のリセット
   state.isBoredToDeath = true;
   state.isHomeProtocolExecuted = false;
-  state.isBossAlerted = false;
   state.bossDistance = CONFIG.BOSS.INITIAL_DISTANCE;
-  state.caffeineCount = 0; 
+  state. = 0; 
   state.caffeineStack = 0; 
   state.isToiletEmergency = false; 
   state.toiletCountdown = 0;
