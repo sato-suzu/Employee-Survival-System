@@ -550,8 +550,7 @@ function startRoutine() {
   // 状態のリセット
   state.isBoredToDeath = true;
   state.isHomeProtocolExecuted = false;
-  state.bossDistance = CONFIG.BOSS.INITIAL_DISTANCE;
-  state. = 0; 
+  state.bossDistance = CONFIG.BOSS.INITIAL_DISTANCE; 
   state.caffeineStack = 0; 
   state.isToiletEmergency = false; 
   state.toiletCountdown = 0;
