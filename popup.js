@@ -724,7 +724,8 @@ async function loop() {
         }
         else {
           state.totalFakeActionsExecuted++;
-          const randomAction = fakeActions[Math.floor(Math.random() * randomEvents.length) % fakeActions.length];
+          // 入力ミス修正：基準を fakeActions.length に統一
+          const randomAction = fakeActions[Math.floor(Math.random() * fakeActions.length)];
           appendLog(`STATUS: ACTIVE... [ACTION] ${randomAction}`);
         }
       }
