@@ -9,7 +9,7 @@ const state = {
   targetTime: { hours: 17, minutes: 45, seconds: 0 },
   audioCtx: null,          // AudioContext シングルトン保持用
   caffeineTimeoutId: null, // カフェインデバフのタイマーID保持用
-  caffeineStack: 0,        // エナドリのカフェイン
+  caffeineStack: 0,        // エナドリのカフェイン蓄積数
   bossDistance: 5.0,       // 上司の初期位置
   isMuted: false,          // ミュート状態管理
 
@@ -223,7 +223,7 @@ const fakeActions = [
   "CHROME DEVTOOLS STARE (検証ツールの赤エラーを険しい顔で凝視し、世界のバグと戦うポーズ)",
   "ADJUSTING GLASSES (メガネのブリッジを中指で押し上げ、知的スタックを25%上昇中)",
   "NECK STRETCHING (首を左右にバキバキ鳴らし、限界まで戦うタフな戦士のオーラを放出)",
-  "DESK CLEANING (ウエットティッシュでキーボードの隙間を拭、リファクタリング感を演出)",
+  "DESK CLEANING (ウエットティッシュでキーボードの隙間を拭き、リファクタリング感を演出)",
   "PEN CLICKING SPEEDRUN (ボールペンを無音で高速ノックし、脳内のセロトニンを強制分泌中)",
   "LOOKING AT CEILING (天井の一点を見つめ、壮大なシステムアーキテクチャを設計するフリ)",
   "FOLDING ARMS GRIMLY (腕をがっちり組み、足元の電源タップを睨みつけてバグの根源を威嚇)"
@@ -249,7 +249,7 @@ const randomEvents = [
     type: 'error'
   },
   {
-    text: "🎧 ノイズキャンセル発動: 隣席 of 雑談攻撃に対抗するためヘッドホン装備。世界との接続を遮断しました。",
+    text: "🎧 ノイズキャンセル発動: 隣席の雑談攻撃に対抗するためヘッドホン装備。世界との接続を遮断しました。",
     effect: (s) => { modifyMental(12); },
     type: 'info'
   },
@@ -318,7 +318,7 @@ const randomEvents = [
     type: 'error'
   },
   {
-    text: "🎮 帰宅後予定バフ: 家で遊ぶゲーム of アップデート完了通知を思い出しました。生きる理由を再確認。",
+    text: "🎮 帰宅後予定バフ: 家で遊ぶゲームのアップデート完了通知を思い出しました。生きる理由を再確認。",
     effect: (s) => { modifyMental(15); },
     type: 'info'
   },
@@ -401,7 +401,7 @@ const randomEvents = [
     type: 'error'
   },
   {
-    text: "⚠️ コピー機詰まり: 自分の直前で「紙詰まり：複合機内部のレバーA1を開けてください」の絶望表示。なぜ自分が直ねばならんのか。",
+    text: "⚠️ コピー機詰まり: 自分の直前で「紙詰まり：複合機内部のレバーA1を開けてください」の絶望表示。なぜ自分が直さねばならんのか。",
     effect: (s) => { modifyMental(-10); },
     type: 'warn'
   },
@@ -458,7 +458,7 @@ const randomEvents = [
     type: 'error'
   },
   {
-    text: "🤫 噂話の傍聴: 给湯室で『今年の冬のボーナス、ちょっと調整が入るらしいよ』という不穏な会話が漏れ聞こえてきた。",
+    text: "🤫 噂話の傍聴: 給湯室で『今年の冬のボーナス、ちょっと調整が入るらしいよ』という不穏な会話が漏れ聞こえてきた。",
     effect: (s) => { modifyMental(-15); },
     type: 'warn'
   },
@@ -724,7 +724,6 @@ async function loop() {
         }
         else {
           state.totalFakeActionsExecuted++;
-          // 入力ミス修正：基準を fakeActions.length に統一
           const randomAction = fakeActions[Math.floor(Math.random() * fakeActions.length)];
           appendLog(`STATUS: ACTIVE... [ACTION] ${randomAction}`);
         }
@@ -873,6 +872,9 @@ function useToilet() {
   }
 }
 
+// ==========================================
+// カフェイン摂取（エナドリ）
+// ==========================================
 function useCaffeine() {
   if (!state.isBoredToDeath) return;
 
@@ -1048,7 +1050,6 @@ async function loadSavedAchievements() {
     savedList.forEach(id => {
       if (ACHIEVEMENTS[id]) {
         state.unlockedAchievements.add(id);
-        // ★ 共通化した addAchievementToUI 関数を使用
         addAchievementToUI(id);
       }
     });
@@ -1075,6 +1076,5 @@ async function unlockAchievement(id) {
 
   setTargetText('achieve-count', state.unlockedAchievements.size);
 
-  // ★ 共通化した addAchievementToUI 関数を使用
   addAchievementToUI(id);
 }
