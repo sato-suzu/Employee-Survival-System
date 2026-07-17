@@ -11,6 +11,7 @@ const state = {
   caffeineTimeoutId: null, // カフェインデバフのタイマーID保持用
   caffeineStack: 0,        // エナドリのカフェイン
   bossDistance: 5.0,       // 上司の初期位置
+  isMuted: false,          // ★追加：ミュート状態管理
 
   // --- 実績システム用状態管理 ---
   unlockedAchievements: new Set(),
@@ -73,8 +74,66 @@ const CONFIG = {
   CONFETTI: {
     COUNT: 100,
     COLORS: ['#f43f5e', '#3b82f6', '#10b981', '#eab308', '#a855f7', '#ff7849']
+  },
+  LOG: {
+    MAX_DISPLAY_ROWS: 300 // 画面に表示する最大ログ件数
   }
 };
+
+// ==========================================
+// IndexedDB ログ永続化管理クラス
+// ==========================================
+class LogDatabase {
+  constructor() {
+    this.dbName = "SlackerRoutineDB";
+    this.storeName = "logs";
+    this.db = null;
+  }
+
+  init() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.dbName, 1);
+
+      request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          db.createObjectStore(this.storeName, { keyPath: "id", autoIncrement: true });
+        }
+      };
+
+      request.onsuccess = (e) => {
+        this.db = e.target.result;
+        resolve();
+      };
+
+      request.onerror = (e) => {
+        console.error("IndexedDB initialization failed:", e.target.error);
+        reject(e.target.error);
+      };
+    });
+  }
+
+  saveLog(text, type) {
+    if (!this.db) return Promise.resolve();
+
+    return new Promise((resolve) => {
+      const transaction = this.db.transaction([this.storeName], "readwrite");
+      const store = transaction.objectStore(this.storeName);
+      
+      const logEntry = {
+        timestamp: Date.now(),
+        text: text,
+        type: type
+      };
+
+      const request = store.add(logEntry);
+      request.onsuccess = () => resolve();
+      request.onerror = () => resolve();
+    });
+  }
+}
+
+const logDB = new LogDatabase();
 
 // ==========================================
 // 音声合成管理（Web Speech API 共通化クラス）
@@ -85,14 +144,9 @@ class WhisperManager {
     this.queue = Promise.resolve();
   }
 
-  /**
-   * 非同期で音声を発声し、完了を待つキューに追加する
-   * @param {string} text 発話するテキスト
-   * @returns {Promise<void>}
-   */
   speak(text) {
-    // すでにシステムが停止している場合はキューをスキップ
-    if (!state.isBoredToDeath) return Promise.resolve();
+    // ★ミュート設定、または生存状態でなければスルー
+    if (state.isMuted || !state.isBoredToDeath) return Promise.resolve();
 
     this.queue = this.queue.then(() => {
       return new Promise((resolve) => {
@@ -102,7 +156,6 @@ class WhisperManager {
         uttr.rate = this.config.RATE;
         uttr.pitch = this.config.PITCH;
 
-        // 再生完了、またはエラー時にPromiseを解決して次のキューへ回す
         uttr.onend = () => resolve();
         uttr.onerror = () => resolve();
 
@@ -113,16 +166,12 @@ class WhisperManager {
     return this.queue;
   }
 
-  /**
-   * 現在の再生をすべて強制停止し、キューをリセットする
-   */
   stopAll() {
     window.speechSynthesis.cancel();
     this.queue = Promise.resolve();
   }
 }
 
-// 音声マネージャーのインスタンス化
 const whisper = new WhisperManager(CONFIG.SPEECH);
 
 // ==========================================
@@ -201,7 +250,7 @@ const randomEvents = [
     type: 'error'
   },
   {
-    text: "🎧 ノイズキャンセル発動: 隣席の雑談攻撃に対抗するためヘッドホン装備。世界との接続を遮断しました。",
+    text: "🎧 ノイズキャンセル発動: 隣席 of 雑談攻撃に対抗するためヘッドホン装備。世界との接続を遮断しました。",
     effect: (s) => { modifyMental(12); },
     type: 'info'
   },
@@ -224,7 +273,7 @@ const randomEvents = [
     type: 'warn'
   },
   {
-    text: "🌅 定時前ミラクル: 隣のチームが全員帰宅準備開始。帰れる空気がフロア全体に発生しました。",
+    text: "👑 定時前ミラクル: 隣のチームが全員帰宅準備開始。帰れる空気がフロア全体に発生しました。",
     effect: (s) => { modifyMental(20); },
     type: 'info'
   },
@@ -429,7 +478,15 @@ const randomEvents = [
 // ==========================================
 // イベントリスナー初期化
 // ==========================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // ----- IndexedDB のマウント・初期化 -----
+  try {
+    await logDB.init();
+    appendLog("[SYSTEM] ログデータベース(IndexedDB)が正常にマウントされました。");
+  } catch (err) {
+    console.error("IndexedDBの初期化に失敗しました。制限超過分のログは永続化されません:", err);
+  }
+
   // ----- ターゲット時間を現在時刻の15分後に動的設定 -----
   const now = new Date();
   now.setMinutes(now.getMinutes() + 15); // 15分後に設定
@@ -456,6 +513,24 @@ document.addEventListener('DOMContentLoaded', () => {
   registerClick('btn-cafe', useCaffeine);
   registerClick('btn-oshi', watchOshi);
 
+  // ★追加：ミュートボタンのクリックイベント
+  const btnMute = document.getElementById('btn-mute');
+  if (btnMute) {
+    btnMute.addEventListener('click', () => {
+      state.isMuted = !state.isMuted; // ミュートステートの反転
+
+      if (state.isMuted) {
+        btnMute.textContent = '🔇 サウンド: OFF';
+        btnMute.classList.add('is-muted'); // ★ 'muted' から 'is-muted' に変更して赤色化を防ぐ
+        appendLog("[SYSTEM] サウンド出力をミュートしました。");
+      } else {
+        btnMute.textContent = '🔊 サウンド: ON';
+        btnMute.classList.remove('is-muted');
+        appendLog("[SYSTEM] サウンド出力を有効化しました。");
+      }
+    });
+  }
+
   toggleLifehackButtons(false);
 
   const totalAchievements = Object.keys(ACHIEVEMENTS).length;
@@ -473,7 +548,8 @@ function setTargetText(id, text) {
   if (el) el.innerText = text;
 }
 
-function appendLog(text, type = 'info') {
+// ログ出力（300行を超えたら最古のログをIndexedDBに退避する）
+async function appendLog(text, type = 'info') {
   const logArea = document.getElementById('log-area');
   if (!logArea) return;
   const now = new Date().toLocaleTimeString();
@@ -484,9 +560,27 @@ function appendLog(text, type = 'info') {
 
   const logRow = document.createElement('div');
   logRow.style.color = color;
+  // 後の型判別のためにカスタムデータ属性に保存
+  logRow.dataset.type = type;
   logRow.textContent = `[${now}] ${text}`;
 
   logArea.appendChild(logRow);
+
+  // 画面上のログ制限処理 (CONFIG.LOG.MAX_DISPLAY_ROWS = 300)
+  while (logArea.children.length > CONFIG.LOG.MAX_DISPLAY_ROWS) {
+    const oldestRow = logArea.firstChild;
+    if (oldestRow) {
+      const oldestText = oldestRow.textContent;
+      const oldestType = oldestRow.dataset.type || 'info';
+
+      // IndexedDBへ裏で保存
+      logDB.saveLog(oldestText, oldestType);
+
+      // DOMから消滅
+      oldestRow.remove();
+    }
+  }
+
   logArea.scrollTop = logArea.scrollHeight;
 }
 
@@ -604,7 +698,7 @@ async function loop() {
         state.totalFakeActionsExecuted++;
         document.querySelector('.container')?.classList.add('danger-zone');
 
-        // ★共通化した WhisperManager で自動キューイング処理
+        // ★共通化した WhisperManager で自動キューイング処理（内部で state.isMuted 監視）
         whisper.speak("ヤバい");
 
         // 上司接近中でも30%で緊急イベント発生
@@ -627,7 +721,7 @@ async function loop() {
           setTargetText('status', 'SOCIAL_DEATH');
           appendLog("[FATAL] 間に合いませんでした。エンジニアとしての尊厳が消滅しました。", 'error');
           
-          // ★共通化したマネージャーで社会的死亡の断末魔を再生
+          // ★共通化したマネージャーで社会的死亡の断末魔を再生（内部で state.isMuted 監視）
           await whisper.speak("ぶりゅ、ぶりゅ、ぶりゅりゅりゅ。");
           
           unlockAchievement('SOCIAL_DEATH');
@@ -741,7 +835,6 @@ function shutdownSystem() {
 // トイレ妨害イベントのマスターデータ
 // ==========================================
 const TOILET_OBSTACLE_EVENTS = [
-  // --- 元の5つ（微調整版） ---
   {
     text: "🚧 トイレ妨害：【上司の世間話エリア】トイレの前で上司が他部署の同僚と「最近の若者のタイピング速度」について軽い雑談中。ここでエンカウントすると高確率で捕まって話が長引くため、気配を消して静かに後退した…。",
     effect: (s) => {
@@ -796,28 +889,20 @@ function useToilet() {
 
   state.totalToiletEscapes++;
 
-  // ------------------------------------------
-  // 大波（緊急事態）の時は妨害なし
-  // ------------------------------------------
   if (state.isToiletEmergency) {
     state.isToiletEmergency = false; 
     state.toiletCountdown = 0; 
     modifyMental(CONFIG.LIFEHACK.TOILET_HEAL);
     appendLog(`✨ 無事個室へチェックイン！人間としての尊厳は守られた。 (+${CONFIG.LIFEHACK.TOILET_HEAL})`, 'info');
   } 
-  // ------------------------------------------
-  // 通常時のトイレ時は50%の確率で妨害が発生
-  // ------------------------------------------
   else {
     const isObstructed = Math.random() < 0.50; // 50%の確率で妨害
 
     if (isObstructed) {
-      // 妨害イベントをランダムに抽選
       const obstacle = TOILET_OBSTACLE_EVENTS[Math.floor(Math.random() * TOILET_OBSTACLE_EVENTS.length)];
       appendLog(obstacle.text, 'error');
-      obstacle.effect(state); // メンタル減、上司接近などのデバフ適用
+      obstacle.effect(state); 
     } else {
-      // 妨害なし：無事サボり個室に避難成功
       modifyMental(CONFIG.LIFEHACK.TOILET_HEAL);
       appendLog(`[LIFEHACK] 誰もいない個室トイレの獲得に成功。完全なるパーソナルスペースで精神のデフラグを実行中。 (+${CONFIG.LIFEHACK.TOILET_HEAL})`, 'warn');
     }
@@ -838,7 +923,6 @@ function useCaffeine() {
     unlockAchievement('OVERDOSE'); 
   }
 
-  // カフェイン反動タイマー
   if (state.caffeineTimeoutId === null) {
     state.caffeineTimeoutId = setTimeout(() => {
       state.caffeineTimeoutId = null;
@@ -870,6 +954,9 @@ function watchOshi() {
 // サウンド・その他補助関数
 // ==========================================
 function playBeep() {
+  // ★追加：ミュート状態ならビープ音を再生しない
+  if (state.isMuted) return;
+
   if (!state.audioCtx) {
     state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
