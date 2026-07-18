@@ -83,29 +83,44 @@ const CONFIG = {
 // ==========================================
 // IndexedDB ログ永続化管理クラス
 // ==========================================
+/**
+ * アプリケーションのログをIndexedDBに永続化するための管理クラス
+ */
 class LogDatabase {
   constructor() {
+    /** @type {string} データベース名 */
     this.dbName = "SlackerRoutineDB";
+    /** @type {string} オブジェクトストア（テーブル）名 */
     this.storeName = "logs";
+    /** @type {IDBDatabase|null} 接続済みのDBインスタンス */
     this.db = null;
   }
 
+  /**
+   * データベースを初期化し、接続を確立する
+   * @returns {Promise<void>} 初期化完了時にresolveされるPromise
+   */
   init() {
     return new Promise((resolve, reject) => {
+      // データベースをバージョン1でオープン
       const request = indexedDB.open(this.dbName, 1);
 
+      // データベースが新規作成、またはバージョンアップされた場合の処理
       request.onupgradeneeded = (e) => {
         const db = e.target.result;
+        // ストアが存在しない場合のみ新規作成（idを自動インクリメントの主キーに設定）
         if (!db.objectStoreNames.contains(this.storeName)) {
           db.createObjectStore(this.storeName, { keyPath: "id", autoIncrement: true });
         }
       };
 
+      // データベース接続成功時
       request.onsuccess = (e) => {
         this.db = e.target.result;
         resolve();
       };
 
+      // データベース接続失敗時
       request.onerror = (e) => {
         console.error("IndexedDB initialization failed:", e.target.error);
         reject(e.target.error);
@@ -113,51 +128,88 @@ class LogDatabase {
     });
   }
 
+  /**
+   * ログをデータベースに保存する
+   * @param {string} text - ログの本文
+   * @param {string} type - ログの種類（例: "info", "error", "debug" など）
+   * @returns {Promise<void>} 保存処理終了時にresolveされるPromise（成否に関わらずresolveする）
+   */
   saveLog(text, type) {
+    // DBが初期化されていない場合は、何もせず処理を抜ける
     if (!this.db) return Promise.resolve();
 
     return new Promise((resolve) => {
+      // 読み書きモードでトランザクションを開始
       const transaction = this.db.transaction([this.storeName], "readwrite");
       const store = transaction.objectStore(this.storeName);
-      
+
+      // 保存するログデータのオブジェクトを作成
       const logEntry = {
-        timestamp: Date.now(),
+        timestamp: Date.now(), // 現在のタイムスタンプ（ミリ秒）
         text: text,
         type: type
       };
 
+      // オブジェクトストアにデータを追加
       const request = store.add(logEntry);
+      
+      // アプリの主処理をブロックしないよう、成否（success/error）に関わらずPromiseを解決(resolve)
       request.onsuccess = () => resolve();
       request.onerror = () => resolve();
     });
   }
 }
 
+// グローバルまたはモジュール内で利用するインスタンスを作成
 const logDB = new LogDatabase();
 
 // ==========================================
 // 音声合成管理（Web Speech API 共通化クラス）
 // ==========================================
+// ==========================================
+// 音声合成管理（Web Speech API 共通化クラス）
+// ==========================================
+/**
+ * Web Speech API を用いて、テキストの音声読み上げをキュー管理するクラス
+ */
 class WhisperManager {
+  /**
+   * @param {Object} config - 音声設定オブジェクト
+   * @param {number} config.VOLUME - 音量 (0.0 ～ 1.0)
+   * @param {number} config.RATE - 読み上げ速度 (0.1 ～ 10.0)
+   * @param {number} config.PITCH - 音の高さ (0.0 ～ 2.0)
+   */
   constructor(config) {
     this.config = config;
+    /** @type {Promise<void>} 発話タスクを順番に実行するためのPromiseチェーン（キュー） */
     this.queue = Promise.resolve();
   }
 
+  /**
+   * 指定されたテキストを音声で読み上げる（複数実行時はキューに積まれ、順番に再生）
+   * @param {string} text - 読み上げるテキスト
+   * @returns {Promise<void>} 該当テキストの発話（またはスキップ）が完了したときにresolveされるPromise
+   */
   speak(text) {
+    // 【ガード句】ミュート中、または退屈（特定条件）していない場合は再生せずに終了
+    // ※ 外部スコープの `state` オブジェクトを参照
     if (state.isMuted || !state.isBoredToDeath) return Promise.resolve();
 
+    // 既存のキュー（Promise）に次の発話処理をチェーニングする
     this.queue = this.queue.then(() => {
       return new Promise((resolve) => {
+        // 発話オブジェクトの生成とパラメータ設定
         const uttr = new SpeechSynthesisUtterance(text);
         uttr.lang = 'ja-JP';
         uttr.volume = this.config.VOLUME;
         uttr.rate = this.config.RATE;
         uttr.pitch = this.config.PITCH;
 
+        // 再生終了時、またはエラー発生時、次のキューへ進めるためにPromiseを解決(resolve)
         uttr.onend = () => resolve();
         uttr.onerror = () => resolve();
 
+        // ブラウザに発話を実行させる
         window.speechSynthesis.speak(uttr);
       });
     });
@@ -165,13 +217,20 @@ class WhisperManager {
     return this.queue;
   }
 
+  /**
+   * 現在再生中の音声をすべて強制停止し、待機中の発話キューもクリアする
+   */
   stopAll() {
+    // ブラウザの音声合成を即座にキャンセル
     window.speechSynthesis.cancel();
+    // キュー（Promiseチェーン）を初期状態にリセット
     this.queue = Promise.resolve();
   }
 }
 
+// 共通設定（CONFIG.SPEECH）を渡してインスタンス化
 const whisper = new WhisperManager(CONFIG.SPEECH);
+
 
 // ==========================================
 // 実績マスターデータ定義
@@ -477,47 +536,68 @@ const randomEvents = [
 // ==========================================
 // イベントリスナー初期化
 // ==========================================
+/**
+ * DOM（HTML要素）の解析が完了したタイミングで実行される初期化処理
+ */
 document.addEventListener('DOMContentLoaded', async () => {
+  
+  // 1. ログデータベースの初期化
   try {
+    // IndexedDBの接続・テーブル作成を待機
     await logDB.init();
     appendLog("[SYSTEM] ログデータベース(IndexedDB)が正常にマウントされました。");
   } catch (err) {
+    // 失敗してもアプリ自体は動くよう、エラーログの出力に留める（堅牢な設計）
     console.error("IndexedDBの初期化に失敗しました。制限超過分のログは永続化されません:", err);
   }
 
+  // 2. 目標時間の初期値設定（現在時刻の「15分後」をデフォルト値とする）
   const now = new Date();
-  now.setMinutes(now.getMinutes() + 15); 
+  now.setMinutes(now.getMinutes() + 15); // 15分を加算
 
   const defaultHours = now.getHours();
   const defaultMinutes = now.getMinutes();
 
+  // アプリケーションのグローバル状態（state）にデフォルトの目標時間をセット
   state.targetTime.hours = defaultHours;
   state.targetTime.minutes = defaultMinutes;
   state.targetTime.seconds = 0;
 
+  // 時間入力フォーム（input[type="time"]など）が存在すれば、初期値を反映 (例: "14:30")
   const timeInput = document.getElementById('input-target-time');
   if (timeInput) {
     timeInput.value = `${String(defaultHours).padStart(2, '0')}:${String(defaultMinutes).padStart(2, '0')}`;
   }
 
+  // 3. ボタンのクリックイベント登録（ヘルパー関数による共通化）
+  /**
+   * 指定したIDの要素が存在する場合に、クリックイベントリスナーを登録するヘルパー
+   * @param {string} id - エレメントのID
+   * @param {Function} fn - コールバック関数
+   */
   const registerClick = (id, fn) => document.getElementById(id)?.addEventListener('click', fn);
 
-  registerClick('btn-start', startRoutine);
-  registerClick('btn-escape', forceEscape);
-  registerClick('btn-toilet', useToilet);
-  registerClick('btn-cafe', useCaffeine);
-  registerClick('btn-oshi', watchOshi);
+  // 各種アクションボタンに処理をマッピング
+  registerClick('btn-start', startRoutine);   // ルーチン開始
+  registerClick('btn-escape', forceEscape);   // 強制離脱 / エスケープ
+  registerClick('btn-toilet', useToilet);     // トイレイベント
+  registerClick('btn-cafe', useCaffeine);     // カフェイン摂取
+  registerClick('btn-oshi', watchOshi);       // 推しを愛でる
 
+  // 4. ミュート（消音）ボタンのトグル制御
   const btnMute = document.getElementById('btn-mute');
   if (btnMute) {
     btnMute.addEventListener('click', () => {
+      // ミュート状態の反転（true ↔ false）
       state.isMuted = !state.isMuted; 
 
       if (state.isMuted) {
+        // ミュートON時のUI表現変更とログ出力
         btnMute.textContent = '🔇 サウンド: OFF';
         btnMute.classList.add('is-muted'); 
         appendLog("[SYSTEM] サウンド出力をミュートしました。");
       } else {
+        // ミュートOFF時のUI表現変更とログ出力
         btnMute.textContent = '🔊 サウンド: ON';
         btnMute.classList.remove('is-muted');
         appendLog("[SYSTEM] サウンド出力を有効化しました。");
@@ -525,88 +605,129 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // 5. その他の初期状態セットアップ
+  // ライフハック系ボタンを初期状態（無効化など）にする
   toggleLifehackButtons(false);
 
+  // 実績（アチーブメント）の総数をカウントし、画面上のカウンターに表示
   const totalAchievements = Object.keys(ACHIEVEMENTS).length;
   setTargetText('achieve-total', totalAchievements);
 
+  // ローカルストレージ等から、過去に解放した実績データを読み込む
   loadSavedAchievements();
 });
 
 // ==========================================
 // UI・ログ制御用ヘルパー関数
 // ==========================================
+
+/**
+ * 指定したIDのエレメントのテキスト（innerText）を書き換える
+ * @param {string} id - 対象要素のID
+ * @param {string|number} text - 設定するテキスト
+ */
 function setTargetText(id, text) {
   const el = document.getElementById(id);
   if (el) el.innerText = text;
 }
 
+/**
+ * ログエリアに新しいログ行を追加し、上限を超えた古いログを間引いてIndexedDBへ退避する
+ * @param {string} text - ログ本文
+ * @param {'info'|'warn'|'error'|'achievement'} [type='info'] - ログの種類（色分けに使用）
+ * @returns {Promise<void>}
+ */
 async function appendLog(text, type = 'info') {
   const logArea = document.getElementById('log-area');
-  if (!logArea) return;
-  const now = new Date().toLocaleTimeString();
-  let color = '#a7f3d0';
-  if (type === 'warn') color = '#fbcfe8';
-  if (type === 'error') color = '#fca5a5';
-  if (type === 'achievement') color = '#fef08a'; 
+  if (!logArea) return; // ログエリアがない場合は処理しない
 
+  const now = new Date().toLocaleTimeString(); // 現在時刻の文字列 (例: "14:30:15")
+  
+  // ログのタイプに応じた配色（テーマカラー）の決定
+  let color = '#a7f3d0'; // デフォルト: info (薄い緑)
+  if (type === 'warn') color = '#fbcfe8';        // 警告 (薄いピンク)
+  if (type === 'error') color = '#fca5a5';       // エラー (薄い赤)
+  if (type === 'achievement') color = '#fef08a'; // 実績解除 (薄い黄)
+
+  // 新しいログ要素（DOM）の構築
   const logRow = document.createElement('div');
   logRow.style.color = color;
-  logRow.dataset.type = type;
+  logRow.dataset.type = type; // 後でDB保存時に判別できるようデータ属性に保持
   logRow.textContent = `[${now}] ${text}`;
 
+  // 画面のログエリアに挿入
   logArea.appendChild(logRow);
 
+  // 【ログのローテーション制御】
+  // 表示件数が設定された上限値を超えている間、最古の行を削除しつつDBへ永続化する
   while (logArea.children.length > CONFIG.LOG.MAX_DISPLAY_ROWS) {
     const oldestRow = logArea.firstChild;
     if (oldestRow) {
       const oldestText = oldestRow.textContent;
       const oldestType = oldestRow.dataset.type || 'info';
+      
+      // 画面から消すログを IndexedDB に保存（非同期処理だがログの流れを止めないため await はしない）
       logDB.saveLog(oldestText, oldestType);
+      
+      // 画面（DOM）から古い行を削除
       oldestRow.remove();
     }
   }
 
+  // 常に最新のログが見えるよう、一番下まで自動スクロール
   logArea.scrollTop = logArea.scrollHeight;
 }
 
+/**
+ * 特定のライフハック（行動）ボタン群の活性・非活性（disabled）を一括で切り替える
+ * @param {boolean} enabled - true でボタンを有効化、false で無効化
+ */
 function toggleLifehackButtons(enabled) {
   ['btn-toilet', 'btn-cafe', 'btn-oshi'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.disabled = !enabled;
+    if (el) el.disabled = !enabled; // 有効化(enabled=true)のとき、disabledをfalseにする
   });
 }
 
+/**
+ * 現在のメンタル値（state.mentalGauge）を読み取り、UI上の数値・メーター・色を同期する
+ */
 function updateMentalUI() {
   const mentalEl = document.getElementById('mental');
   const gaugeMental = document.getElementById('gauge-mental');
-  if (!mentalEl || !gaugeMental) return; 
+  if (!mentalEl || !gaugeMental) return; // 必要なUI要素が揃っていなければ処理をスキップ
 
   const currentGauge = state.mentalGauge;
 
+  // 数値テキストと、HTMLの <progress> 更新
   mentalEl.innerText = currentGauge;
   gaugeMental.value = currentGauge;
 
+  // 以前のステータスクラスを一度すべてクリア
   gaugeMental.classList.remove('mental-stable', 'mental-fatigue', 'mental-danger', 'mental-critical');
 
+  // メンタル残量に応じてステージ判定を行い、クラスと文字色を適用
   if (currentGauge >= 71) {
+    // 安定状態 (Green)
     gaugeMental.classList.add('mental-stable');
     mentalEl.style.color = '#22c55e';
   } 
   else if (currentGauge >= 41) {
+    // 疲労状態 (Yellow)
     gaugeMental.classList.add('mental-fatigue');
     mentalEl.style.color = '#eab308';
   } 
   else if (currentGauge >= 21) {
+    // 危険状態 (Orange)
     gaugeMental.classList.add('mental-danger');
     mentalEl.style.color = '#f97316';
   } 
   else {
+    // 崩壊寸前 (Red)
     gaugeMental.classList.add('mental-critical');
     mentalEl.style.color = '#ef4444';
   }
 }
-
 // ==========================================
 // コアロジック（ルーチン制御）
 // ==========================================
