@@ -166,9 +166,6 @@ const logDB = new LogDatabase();
 // ==========================================
 // 音声合成管理（Web Speech API 共通化クラス）
 // ==========================================
-// ==========================================
-// 音声合成管理（Web Speech API 共通化クラス）
-// ==========================================
 /**
  * Web Speech API を用いて、テキストの音声読み上げをキュー管理するクラス
  */
@@ -541,7 +538,7 @@ const randomEvents = [
  */
 document.addEventListener('DOMContentLoaded', async () => {
   
-  // 1. ログデータベースの初期化
+  // ログデータベースの初期化
   try {
     // IndexedDBの接続・テーブル作成を待機
     await logDB.init();
@@ -551,7 +548,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error("IndexedDBの初期化に失敗しました。制限超過分のログは永続化されません:", err);
   }
 
-  // 2. 目標時間の初期値設定（現在時刻の「15分後」をデフォルト値とする）
+  // 目標時間の初期値設定（現在時刻の「15分後」をデフォルト値とする）
   const now = new Date();
   now.setMinutes(now.getMinutes() + 15); // 15分を加算
 
@@ -569,7 +566,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     timeInput.value = `${String(defaultHours).padStart(2, '0')}:${String(defaultMinutes).padStart(2, '0')}`;
   }
 
-  // 3. ボタンのクリックイベント登録（ヘルパー関数による共通化）
+  // ボタンのクリックイベント登録（ヘルパー関数による共通化）
   /**
    * 指定したIDの要素が存在する場合に、クリックイベントリスナーを登録するヘルパー
    * @param {string} id - エレメントのID
@@ -584,7 +581,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   registerClick('btn-cafe', useCaffeine);     // カフェイン摂取
   registerClick('btn-oshi', watchOshi);       // 推しを愛でる
 
-  // 4. ミュート（消音）ボタンのトグル制御
+  // ミュートボタンのトグル制御
   const btnMute = document.getElementById('btn-mute');
   if (btnMute) {
     btnMute.addEventListener('click', () => {
@@ -605,11 +602,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // 5. その他の初期状態セットアップ
+  // その他の初期状態セットアップ
   // ライフハック系ボタンを初期状態（無効化など）にする
   toggleLifehackButtons(false);
 
-  // 実績（アチーブメント）の総数をカウントし、画面上のカウンターに表示
+  // 実績の総数をカウントし、画面上のカウンターに表示
   const totalAchievements = Object.keys(ACHIEVEMENTS).length;
   setTargetText('achieve-total', totalAchievements);
 
@@ -851,7 +848,7 @@ async function loop() {
           break; // ループを離脱
         }
       }
-      // --- パターンC: 通常巡航状態（1m以上離れており、トイレも安全） ---
+      // --- パターンC: 通常状態（1m以上離れており、トイレも安全） ---
       else {
         const rng = Math.random();
 
@@ -972,7 +969,7 @@ function shutdownSystem() {
 // トイレ妨害イベントのマスターデータ
 // ==========================================
 /**
- * 通常時にトイレボタンを押した際、50%の確率で発生する「サボり妨害」イベント定義
+ * 通常時にトイレボタンを押した際、50%の確率で発生するサボり妨害イベント定義
  */
 const TOILET_OBSTACLE_EVENTS = [
   {
@@ -1300,11 +1297,11 @@ async function unlockAchievement(id) {
   state.unlockedAchievements.add(id);
   const a = ACHIEVEMENTS[id];
 
-  // 非同期保存を開始しつつ、並行して画面演出を実行
+  // 非同期保存を開始しつつ並行して画面演出を実行
   await saveAchievements();
   launchConfetti(); 
 
-  // 実績解除専用の特別カラー(金色系)でコンソール（ログエリア）に大々的に出力
+  // 実績解除時に金色でコンソール（ログエリア）に大々的に出力
   appendLog(`🌟⭐【実績解除 / ACHIEVEMENT UNLOCKED】⭐🌟`, 'achievement');
   appendLog(`${a.title} : ${a.desc}`, 'achievement');
   appendLog(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'achievement');
