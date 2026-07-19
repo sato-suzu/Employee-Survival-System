@@ -34,7 +34,9 @@
 
 ---
 ## 📸 Screenshots
-<img width="1366" height="768" alt="github用" src="https://github.com/user-attachments/assets/8652ae14-196e-4326-bd31-cca5925c952f" />
+<img width="1280" height="719" alt="キャプチャ" src="https://github.com/user-attachments/assets/1597af81-f125-46ad-a898-79ec2030d067" />
+<img width="1280" height="719" alt="WS000013" src="https://github.com/user-attachments/assets/0bb9e440-0d31-4412-bf1b-493149164196" />
+
 
 
 ---
