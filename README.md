@@ -1,6 +1,7 @@
 # Employee Survival System
 ブラック企業サバイバルのための Chrome 拡張。  
 社畜の生命維持を支援します。
+chromeウェブストアURL：https://chromewebstore.google.com/detail/dijlbaggaeaemhojddhkjppgedpbiaff?utm_source=item-share-cb
 
 ---
 
