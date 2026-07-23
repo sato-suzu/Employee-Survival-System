@@ -1,5 +1,5 @@
 // ==========================================
-// 🌐 English Language Auto-Patch (Refactored)
+// 🌐 English Language Auto-Patch
 // ==========================================
 (function applyEnglishPatch() {
   // ブラウザ言語が日本語の場合はパッチを適用しない
