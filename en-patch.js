@@ -234,6 +234,8 @@
     const originalAppendLog = appendLog;
     
 const logDictionary = {
+"【緊急事態】お腹に突発的な『大波』を検知！！5秒以内にトイレに駆け込まないと社会的に死亡します！！": 
+      "【CRITICAL ALERT】 Sudden 'Tsunami' detected in lower gut! Reach the restroom within 5 seconds or suffer absolute Social Death!!",
   "定時退勤生存ルーチンを開始": "Clock-Out Survival Routine Started",
   "警告: 定時退勤ルーチンは既に稼働中です。多重起動を防止しました。": "Warning: Clock-Out Routine is already running. Duplicate execution blocked.",
   "サウンド出力をミュートしました。": "Sound output muted.",
