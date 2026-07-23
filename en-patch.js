@@ -163,13 +163,17 @@
     setText('#btn-cafe', 'Energy Drink');
     setText('#btn-oshi', 'Stare at Favorite');
 
-    const audioLabel = document.querySelector('span[style*="オーディオ出力設定"]');
-    if (audioLabel) audioLabel.innerText = "Audio Output:";
+const audioLabel = [...document.querySelectorAll('span')]
+  .find(el => el.innerText.includes('オーディオ出力設定'));
 
-    const btnMute = document.querySelector('#btn-mute');
-    if (btnMute && btnMute.innerText.includes('ON')) {
-      btnMute.innerText = "🔊 Sound: ON";
-    }
+if (audioLabel) {
+  audioLabel.innerText = "Audio Output:";
+}
+
+const btnMute = document.querySelector('#btn-mute');
+if (btnMute && btnMute.innerText.includes('ON')) {
+  btnMute.innerText = "🔊 Audio: ON";
+}
 
     const initLog = document.querySelector('#log-area div');
     if (initLog && initLog.innerText.includes('待機中')) {
@@ -238,8 +242,8 @@ const logDictionary = {
       "【CRITICAL ALERT】 Sudden 'Tsunami' detected in lower gut! Reach the restroom within 5 seconds or suffer absolute Social Death!!",
   "定時退勤生存ルーチンを開始": "Clock-Out Survival Routine Started",
   "警告: 定時退勤ルーチンは既に稼働中です。多重起動を防止しました。": "Warning: Clock-Out Routine is already running. Duplicate execution blocked.",
-  "サウンド出力をミュートしました。": "Sound output muted.",
-  "サウンド出力を有効化しました。": "Sound output enabled.",
+  "サウンド出力をミュートしました。": "Audio output muted.",
+  "サウンド出力を有効化しました。": "Audio output enabled.",
   "間に合いませんでした。エンジニアとしての尊厳が消滅しました。": "Failed to reach the restroom. Engineering dignity deleted.",
   "精神的サーバーダウン。限界です。意識が有給休暇を取得しました。": "Mental server crashed. Consciousness took Paid Time Off.",
   "偽装を解除。定時を待たずに脱出します！": "Disguise mode disabled. Emergency escape initiated!",
