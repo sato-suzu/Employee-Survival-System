@@ -1,12 +1,21 @@
 // ==========================================
-// 🌐 English Language Auto-Patch (JS + HTML)
+// 🌐 English Language Auto-Patch (Refactored)
 // ==========================================
 (function applyEnglishPatch() {
-  // ブラウザ言語が日本語の場合はパッチを適用しない（自動判別）
+  // ブラウザ言語が日本語の場合はパッチを適用しない
   const userLang = navigator.language || navigator.userLanguage;
-  if (userLang.startsWith('ja')) return;
+  if (userLang && userLang.startsWith('ja')) return;
 
   console.log("[i18n] Non-Japanese environment detected. Applying English Patch...");
+
+  // DOMロード安全実行ヘルパー
+  function onReady(fn) {
+    if (document.readyState !== 'loading') {
+      fn();
+    } else {
+      document.addEventListener('DOMContentLoaded', fn);
+    }
+  }
 
   // ------------------------------------------
   // 1. ACHIEVEMENTS（実績）の上書き
@@ -125,9 +134,9 @@
   }
 
   // ------------------------------------------
-  // 5. HTML DOM TEXT OVERWRITE (画面の英語化)
+  // 5. HTML DOM TEXT OVERWRITE (画面表示の書き換え)
   // ------------------------------------------
-  document.addEventListener('DOMContentLoaded', () => {
+  onReady(() => {
     document.title = "System Operation Monitor (Audit Log)";
 
     const setText = (selector, text) => {
@@ -175,5 +184,97 @@
 
     setText('#btn-start', 'Initiate Routine');
     setText('#btn-escape', 'Emergency Dash');
+
+    // ステータス初期値の差し替え
+    const status = document.getElementById('status');
+    const statusMap = {
+      "待機中": "WAITING",
+      "定時退勤生存ルーチンを開始": "Clock-Out Survival Routine Started"
+    };
+    if (status && statusMap[status.innerText]) {
+      status.innerText = statusMap[status.innerText];
+    }
+
+    // ステータス変更のリアルタイム監視
+    if (status) {
+      const statusObserver = new MutationObserver(() => {
+        const map = {
+          "WAITING_FOR_TEIJI": "WAITING_FOR_CLOCK-OUT",
+          "HOME_SAFE": "HOME PROTOCOL COMPLETE",
+          "FORCE_QUITTED": "EMERGENCY ESCAPE",
+          "SOCIAL_DEATH": "SOCIAL DEATH",
+          "CRASHED": "MENTAL SYSTEM FAILURE"
+        };
+        if (map[status.innerText]) {
+          status.innerText = map[status.innerText];
+        }
+      });
+      statusObserver.observe(status, { childList: true, subtree: true });
+    }
   });
+
+  // ------------------------------------------
+  // 6. RUNTIME FUNCTION HOOKS (動的処理の横取り)
+  // ------------------------------------------
+
+  // Whisper 音声テキスト翻訳
+  if (typeof whisper !== 'undefined' && whisper.speak) {
+    const originalSpeak = whisper.speak.bind(whisper);
+    whisper.speak = function(text) {
+      const translated = {
+        "ヤバい": "DANGER",
+        "ぶりゅ、ぶりゅ、ぶりゅりゅりゅ。": "SOCIAL DISASTER"
+      }[text] || text;
+      return originalSpeak(translated);
+    };
+  }
+
+  // ログ出力 (appendLog) の一括変換フック
+  if (typeof appendLog === 'function') {
+    const originalAppendLog = appendLog;
+    
+const logDictionary = {
+  "定時退勤生存ルーチンを開始": "Clock-Out Survival Routine Started",
+  "警告: 定時退勤ルーチンは既に稼働中です。多重起動を防止しました。": "Warning: Clock-Out Routine is already running. Duplicate execution blocked.",
+  "サウンド出力をミュートしました。": "Sound output muted.",
+  "サウンド出力を有効化しました。": "Sound output enabled.",
+  "間に合いませんでした。エンジニアとしての尊厳が消滅しました。": "Failed to reach the restroom. Engineering dignity deleted.",
+  "精神的サーバーダウン。限界です。意識が有給休暇を取得しました。": "Mental server crashed. Consciousness took Paid Time Off.",
+  "偽装を解除。定時を待たずに脱出します！": "Disguise mode disabled. Emergency escape initiated!",
+  "定時ダッシュ！": "CLOCK-OUT DASH!",
+  "上司の目を盗み": "without being detected by management",
+  "無傷で会社から脱出した": "escaped the office safely",
+  "エナジードリンクをキメました": "Consumed emergency energy drink",
+  "推しの画像を0.5秒凝視": "Activated favorite-character recovery protocol",
+  "精神のデフラグを実行中": "Running mental defragmentation",
+  "人間としての尊厳は守られた": "Human dignity successfully preserved",
+  "社会的に死亡しました": "Social status terminated",
+  "メインループが安全に終了しました": "Main loop terminated safely",
+  "ログデータベース(IndexedDB)が正常にマウントされました。": "IndexedDB Log Database mounted successfully."
+};
+    appendLog = function(text, type) {
+      if (typeof text === 'string') {
+        Object.entries(logDictionary).forEach(([jp, en]) => {
+          text = text.replaceAll(jp, en);
+        });
+      }
+      return originalAppendLog(text, type);
+    };
+  }
+
+  // 実績解除通知フック
+  if (typeof unlockAchievement === 'function') {
+    const originalUnlock = unlockAchievement;
+    unlockAchievement = function(id) {
+      originalUnlock(id);
+      setTimeout(() => {
+        const logs = document.querySelectorAll("#log-area div");
+        logs.forEach(log => {
+          if (log.innerText.includes("実績解除")) {
+            log.innerText = log.innerText.replace("実績解除", "ACHIEVEMENT UNLOCKED");
+          }
+        });
+      });
+    };
+  }
 })();
