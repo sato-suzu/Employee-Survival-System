@@ -3,18 +3,27 @@
   "name": "Employee Survival System",
   "version": "1.0.6",
   "description": "社畜の精神力を管理しながら定時退勤を目指すミニゲームです。",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "side_panel": {
     "default_path": "popup.html"
   },
   "action": {
-    "default_title": "定時退勤生存ルーチンを起動"
+    "default_title": "定時退勤生存ルーチンを起動",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
   },
   "permissions": [
     "sidePanel",
-    "storage",
+    "storage"
   ]
 }
-
