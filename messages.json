@@ -1,0 +1,79 @@
+{
+  "appName": {
+    "message": "Employee Survival System"
+  },
+  "appDescription": {
+    "message": "A humorous survival mini-game for office workers."
+  },
+
+  "status": {
+    "message": "STATUS:"
+  },
+  "mental": {
+    "message": "MENTAL:"
+  },
+  "bossDistance": {
+    "message": "BOSS DISTANCE:"
+  },
+
+  "targetTimeLabel": {
+    "message": "Target Clock-Out Time:"
+  },
+
+  "btnToilet": {
+    "message": "Restroom Refuge"
+  },
+  "btnCafe": {
+    "message": "Energy Drink"
+  },
+  "btnOshi": {
+    "message": "Stare at Favorite"
+  },
+  "btnStart": {
+    "message": "Initiate Routine"
+  },
+  "btnEscape": {
+    "message": "Emergency Dash"
+  },
+
+  "audioOutput": {
+    "message": "Audio Output:"
+  },
+  "audioOn": {
+    "message": "🔊 Audio: ON"
+  },
+
+  "initialLog": {
+    "message": "[SYSTEM] Ready... Please initiate the program."
+  },
+
+  "achievementTitle": {
+    "message": "UNLOCKED ACHIEVEMENTS:"
+  },
+  "achievementNone": {
+    "message": "(None Unlocked)"
+  },
+
+  "statusWaiting": {
+    "message": "WAITING"
+  },
+  "statusStarted": {
+    "message": "Clock-Out Survival Routine Started"
+  },
+
+  "statusMap_WAITING_FOR_TEIJI": {
+    "message": "WAITING_FOR_CLOCK-OUT"
+  },
+  "statusMap_HOME_SAFE": {
+    "message": "HOME PROTOCOL COMPLETE"
+  },
+  "statusMap_FORCE_QUITTED": {
+    "message": "EMERGENCY ESCAPE"
+  },
+  "statusMap_SOCIAL_DEATH": {
+    "message": "SOCIAL DEATH"
+  },
+  "statusMap_CRASHED": {
+    "message": "MENTAL SYSTEM FAILURE"
+  }
+}
