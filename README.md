@@ -1,4 +1,4 @@
-# Employee Survival System
+す# Employee Survival System
 ブラック企業サバイバルのための Chrome 拡張。  
 社畜の生命維持を支援します。
 
@@ -59,3 +59,4 @@ chromeウェブストアURL：https://chromewebstore.google.com/detail/dijlbagga
 - ~~イベントシステムの汎用化（ユーザーが追加できるように）~~ ←システムの汎用化は別プロジェクト（EmployeeSurvivalEngine）へ移行
 - ~~タブのURLを切り替える機能は削除済だが権限はまだ残っているため次回のアップデートで削除予定~~ ←7/23済
 - ~~英語化パッチ~~ ←7/23済
+- Chromeウェブストアで対応言語が日本語のみになっているので修正する
