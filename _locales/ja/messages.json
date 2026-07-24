@@ -1,0 +1,11 @@
+{
+  "extensionName": {
+    "message": "Employee Survival System"
+  },
+  "extensionDescription": {
+    "message": "社畜の精神力を管理しながら定時退勤を目指すミニゲームです。"
+  },
+  "actionTitle": {
+    "message": "定時退勤生存ルーチンを起動"
+  }
+}
