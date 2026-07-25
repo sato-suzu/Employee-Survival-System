@@ -1,4 +1,4 @@
-す# Employee Survival System
+# Employee Survival System
 ブラック企業サバイバルのための Chrome 拡張。  
 社畜の生命維持を支援します。
 
